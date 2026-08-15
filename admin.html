@@ -63,11 +63,16 @@
       <h2 class="section">수강생 목록</h2>
       <div class="card">
         <p class="muted" style="margin-top:0;">사이트에 가입한 학생 명단입니다. 총 <strong id="student-count">0</strong>명.</p>
+        <div id="roster-stats"></div>
         <div class="table-wrap">
           <table class="data" id="student-table">
-            <thead><tr><th>#</th><th>학번</th><th>이름</th><th>이메일</th><th>가입일</th><th>전체 통과 문제</th></tr></thead>
+            <thead><tr><th>#</th><th>학번</th><th>이름</th><th>이메일</th><th>가입일</th><th>전체 통과 문제</th><th>출석부</th></tr></thead>
             <tbody></tbody>
           </table>
+        </div>
+        <div id="roster-missing-wrap" hidden>
+          <h3 style="font-size:16px;margin:24px 0 8px;">출석부에 있지만 미가입인 학생 (<span id="roster-missing-count">0</span>명)</h3>
+          <div class="pill-list" id="roster-missing"></div>
         </div>
       </div>
     </div>
@@ -80,6 +85,7 @@
   <script>
     let students = [];      // 관리자 제외 profiles
     let allProfiles = [];   // 관리자 포함 전체 profiles (ZIP 파일명 등에 사용)
+    let roster = [];        // 출석부 명단 (student_id, name, dept, seq) — 관리자 전용 테이블
     let summary = [];       // hw_summary 전체 (user_id, week, passed_count, any_late, last_activity)
     let counts = {};        // week -> 문제 수
     let problemsCache = {}; // week -> problems json
@@ -104,17 +110,19 @@
     }
 
     async function loadRoster() {
-      const [profiles, admins, sums, cnt] = await Promise.all([
+      const [profiles, admins, sums, cnt, rosterRes] = await Promise.all([
         fetchAll(() => sb.from("profiles").select("*").order("student_id")),
         sb.from("admins").select("email").then((r) => r.data || []),
         fetchAll(() => sb.from("hw_summary").select("*")),
         fetch("problems/index.json").then((r) => r.json()),
+        sb.from("roster").select("*").order("seq"),   // 출석부 명단 (없으면 무시)
       ]);
       const adminEmails = new Set(admins.map((a) => a.email.toLowerCase()));
       allProfiles = profiles;
       students = profiles.filter((p) => !adminEmails.has((p.email || "").toLowerCase()));
       summary = sums;
       counts = cnt;
+      roster = rosterRes.error ? [] : (rosterRes.data || []);
     }
 
     function renderWeek(week) {
@@ -273,7 +281,13 @@
       const totalProblems = Object.values(counts).reduce((a, b) => a + b, 0);
       const passedByUser = new Map();
       summary.forEach((s) => passedByUser.set(s.user_id, (passedByUser.get(s.user_id) || 0) + s.passed_count));
-      $("#student-table tbody").innerHTML = students.map((p, i) => `
+
+      const rosterIds = new Set(roster.map((r) => String(r.student_id).trim()));
+      const signedIds = new Set(students.map((p) => String(p.student_id || "").trim()));
+
+      $("#student-table tbody").innerHTML = students.map((p, i) => {
+        const inRoster = !roster.length || rosterIds.has(String(p.student_id || "").trim());
+        return `
         <tr>
           <td>${i + 1}</td>
           <td>${esc(p.student_id)}</td>
@@ -281,7 +295,30 @@
           <td class="muted">${esc(p.email)}</td>
           <td>${fmtDate(p.created_at)}</td>
           <td>${passedByUser.get(p.id) || 0} / ${totalProblems}</td>
-        </tr>`).join("") || `<tr><td colspan="6" class="muted">아직 가입한 학생이 없습니다.</td></tr>`;
+          <td>${roster.length ? (inRoster ? '<span class="chip chip-ok">명단 내</span>'
+                                          : '<span class="chip chip-bad">명단 외</span>') : ""}</td>
+        </tr>`;
+      }).join("") || `<tr><td colspan="7" class="muted">아직 가입한 학생이 없습니다.</td></tr>`;
+
+      // 출석부 대조: 미가입 학생
+      if (roster.length) {
+        const notSigned = roster.filter((r) => !signedIds.has(String(r.student_id).trim()));
+        $("#roster-stats").innerHTML = `
+          <div class="notice ${notSigned.length ? "notice-warn" : "notice-ok"}" style="margin-top:0;">
+            출석부 명단 <strong>${roster.length}</strong>명 중
+            가입 <strong>${roster.length - notSigned.length}</strong>명 ·
+            미가입 <strong>${notSigned.length}</strong>명
+          </div>`;
+        $("#roster-missing-wrap").hidden = false;
+        $("#roster-missing-count").textContent = notSigned.length;
+        $("#roster-missing").innerHTML = notSigned.length
+          ? notSigned.map((r) => `<span class="pill">${esc(r.student_id)} ${esc(r.name)}${r.dept ? ` <span class="muted">(${esc(r.dept)})</span>` : ""}</span>`).join("")
+          : `<span class="muted">모든 학생이 가입했습니다 🎉</span>`;
+      } else {
+        $("#roster-stats").innerHTML = `
+          <p class="muted" style="font-size:13px;">출석부 명단이 아직 등록되지 않았습니다.
+          등록하면 미가입 학생을 확인할 수 있습니다 (tools/roster_import.sql 참고).</p>`;
+      }
     }
 
     async function main() {
