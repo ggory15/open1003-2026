@@ -14,7 +14,7 @@
   <main class="container">
     <div class="hero">
       <h1>미래교육2 <span style="font-weight:400;font-size:.6em;opacity:.85">OPEN 1003-00</span></h1>
-      <p>주차별 강의자료를 내려받고, 완성한 Jupyter 노트북(.ipynb)을 제출하세요. 과제는 2주차부터 12주차까지 있습니다.</p>
+      <p>설치 없이 브라우저에서 바로 파이썬 숙제를 풀 수 있습니다. 문제를 풀고 "채점"을 누르면 자동으로 기록됩니다. 숙제는 2주차부터 12주차까지 있습니다.</p>
     </div>
 
     <div id="login-callout"></div>
@@ -42,17 +42,22 @@
           </div>`;
       }
 
-      // 마감일 + 내 제출 현황 로드
+      // 마감일 + 주차별 문제 수 + 내 풀이 현황 로드
       let deadlines = {};
-      let mySubs = {};
+      let counts = {};
+      let myDone = {};   // week -> 통과한 문제 수
       try {
-        const { data: dls } = await sb.from("deadlines").select("*");
-        (dls || []).forEach((d) => { deadlines[d.week] = d.due_at; });
+        const [dlRes, cntRes] = await Promise.all([
+          sb.from("deadlines").select("*"),
+          fetch("problems/index.json").then((r) => r.json()),
+        ]);
+        (dlRes.data || []).forEach((d) => { deadlines[d.week] = d.due_at; });
+        counts = cntRes || {};
       } catch (e) { /* 설정 전이면 무시 */ }
       if (session) {
-        const { data: subs } = await sb.from("submissions")
-          .select("week, submitted_at, is_late").eq("user_id", session.user.id);
-        (subs || []).forEach((s) => { mySubs[s.week] = s; });
+        const { data: rows } = await sb.from("hw_progress")
+          .select("week, passed").eq("user_id", session.user.id).eq("passed", true);
+        (rows || []).forEach((r) => { myDone[r.week] = (myDone[r.week] || 0) + 1; });
       }
 
       const grid = $("#week-grid");
@@ -64,31 +69,26 @@
         }).join("");
 
         let foot = "";
-        if (w.homework) {
+        const total = counts[String(w.week)] || 0;
+        if (w.homework && total > 0) {
           const due = deadlines[w.week];
           const passed = due && new Date(due) < new Date();
           const dueHtml = due
             ? `<span class="deadline ${passed ? "passed" : ""}">마감 ${fmtDate(due)}</span>`
             : `<span class="deadline">마감일 미정</span>`;
 
-          const sub = mySubs[w.week];
-          let chip;
-          if (sub) {
-            chip = sub.is_late
-              ? `<span class="chip chip-warn">지각 제출</span>`
-              : `<span class="chip chip-ok">제출 완료</span>`;
-          } else if (session) {
-            chip = passed
-              ? `<span class="chip chip-bad">미제출 (마감 지남)</span>`
-              : `<span class="chip chip-none">미제출</span>`;
-          } else {
-            chip = "";
+          const done = myDone[w.week] || 0;
+          let chip = "";
+          if (session) {
+            if (done >= total) chip = `<span class="chip chip-ok">완료 ${done}/${total}</span>`;
+            else if (done > 0) chip = `<span class="chip chip-warn">진행 중 ${done}/${total}</span>`;
+            else chip = `<span class="chip ${passed ? "chip-bad" : "chip-none"}">0/${total}</span>`;
           }
           foot = `
             <div class="week-foot">
               <div>${dueHtml} ${chip}</div>
-              <a class="btn btn-sm ${sub ? "btn-outline" : "btn-primary"}" href="submit.html?week=${w.week}">
-                ${sub ? "다시 제출" : "제출하기"}</a>
+              <a class="btn btn-sm ${done >= total && total > 0 ? "btn-outline" : "btn-primary"}" href="hw.html?week=${w.week}">
+                숙제 풀기</a>
             </div>`;
         } else {
           foot = `<div class="week-foot"><span class="muted">제출 과제 없음</span></div>`;

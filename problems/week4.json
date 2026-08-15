@@ -1,0 +1,382 @@
+{
+ "week": 4,
+ "title": "String & Boolean",
+ "items": [
+  {
+   "id": "bb62ff9a-1261-4d15-97a0-347cb179e979",
+   "kind": "problem",
+   "prompt": "### Boolean 자료형\nBoolean 자료형은 참(True)과 거짓(False) 두 가지 값만 가질 수 있는 자료형입니다. <br>\n`bool()` 함수를 통해 다양한 값의 참/거짓 여부를 확인할 수 있으며, 조건문에서 자주 사용됩니다.<br>\n\n`0`의 Boolean을 `bool()`을 이용해 출력해보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "False\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "138ee36e",
+   "kind": "problem",
+   "prompt": "`\"Python\"`의 Boolean을 `bool()`을 이용해 출력해보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "True\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "d735db3e",
+   "kind": "problem",
+   "prompt": "### 비교 연산자\n비교 연산자는 두 값 사이의 관계를 판단하여 True 또는 False를 반환합니다.<br>\n대표적으로 ==, !=, >, <, >=, <= 등이 있으며, <br>\n숫자뿐 아니라 문자열 등 다양한 자료형에 사용됩니다.<br>\n\n정수 `3`과 `2`의 대소 관계를 비교 연산자를 통해 `bool` 자료형으로 출력해보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "True\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "100c7ea1",
+   "kind": "problem",
+   "prompt": "정수 `5`과 `5`의 대소 관계를 비교 연산자를 통해 `bool` 자료형으로 출력해보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "True\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "a35ca20a",
+   "kind": "problem",
+   "prompt": "문자열 `'apple'`과 `'banana'`의 대소 관계를 비교 연산자를 통해 `bool` 자료형으로 출력해보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "False\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "bcc28b8b",
+   "kind": "problem",
+   "prompt": "### 문자열 비교\n문자열도 사전순(Unicode 기준)으로 비교할 수 있습니다. <br>\n예를 들어 'apple' < 'banana'는 True입니다. <br>\n\n두 문자열 `'cat'`과 `'apple'`의 대소 관계를 비교 연산자를 이용해 확인해보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "True\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "dddcd070",
+   "kind": "problem",
+   "prompt": "두 문자열 `'a'`과 `'A'`의 대소 관계를 비교 연산자를 이용해 확인해보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "False\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "a3566fc2",
+   "kind": "problem",
+   "prompt": "## 문자열의 불변성\n\n문자열은 한 번 생성되면 변경할 수 없는(immutable) 자료형입니다. <br>\n이러한 특성으로 인해 다음과 같은 코드를 실행을 하면 오류가 발생합니다.\n```python\ns = 'hello'\ns[0] = 'H'  # 오류 발생\n```\n따라서 변경이 필요한 경우 슬라이싱이나 `replace()` 함수를 사용해 새로운 문자열을 생성합니다. <br>\n`find()` 함수는 특정 문자의 위치를 찾아줍니다.<br>\n\n슬라이싱을 이용해 변수 `s`에 'Hello'을 저장하고 `print()`를 이용해 `'ello'`를 출력해보세요. <br>\n→ `s[1:]`를 이용하면 `s[0]`을 제외한 부분의 문자열을 추출할 수 있습니다.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "ello\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "b0059392",
+   "kind": "problem",
+   "prompt": "`replace(old, new)`: 문자열 내 특정 부분(old)을 다른 문자열(new)로 교체합니다.<br>\n`replace()`를 활용해 문자열 `'apple banana'`에서 `'apple'`을 `'orange'`로 교체해보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "'orange banana'\n",
+      "orange banana\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "85c30b3e",
+   "kind": "problem",
+   "prompt": "`replace()`를 활용해 문자열 `'aabbcc'`의 `'a'`를 `'z'`로 교체해보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "'zzbbcc'\n",
+      "zzbbcc\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "601a2cb6",
+   "kind": "problem",
+   "prompt": "`find(val)`: 지정한 문자열(val)이 처음 등장하는 위치의 인덱스를 반환하고, 없으면 -1을 반환합니다.<br>\n문자열 `'banana'`에서 `'a'`가 처음 등장하는 위치의 인덱스를 `find()`를 활용해 확인해보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "1\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "2c5e535d",
+   "kind": "problem",
+   "prompt": "`find()`를 활용해 문자열 `'banana'`에서 `'x'`의 인덱스를 반환받으려고 하면 어떤 결과가 출력되는지 확인해보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "-1\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "8aabab67",
+   "kind": "problem",
+   "prompt": "## 문자열 처리\n\n`in / not in`: 특정 문자열이 포함되어 있는지를 불리언 값으로 반환합니다.<br>\n문자 `'a'`가 문자열 `'apple'`에 포함되어 있는지 `in`을 활용하여 확인해보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "True\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "a239fd4d",
+   "kind": "problem",
+   "prompt": "`count(val)`: 지정한 문자열이 몇 번 등장하는지 횟수를 반환합니다.<br>\n문자열 `'banana'`에 `'a'`가 몇 번 등장하는지 `count()`를 활용해 확인해보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "3\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ded529dc",
+   "kind": "problem",
+   "prompt": "문자열 `'mississippi'`에 `'s'`가 몇 번 등장하는지 `count()`를 활용해 확인해보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "4\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "5f541d5d",
+   "kind": "problem",
+   "prompt": "`split(sep)`: 구분자를 기준으로 문자열을 나누어 리스트로 반환합니다. <br>\n`split()`을 활용해서 문자열 `'a,b,c'`를 쉼표(,)를 기준으로 나누어 보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "['a', 'b', 'c']\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "292813cb",
+   "kind": "problem",
+   "prompt": "`split()`을 활용해서 문자열 `'one two three'`를 공백( )을 기준으로 나누어 보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "['one', 'two', 'three']\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "b4f5bbfc",
+   "kind": "problem",
+   "prompt": "`strip()`: 문자열의 양 끝에서 공백 또는 지정한 문자를 제거합니다.<br>\n문자열 `'   hello   '` 양 끝의 공백을 `strip()`을 이용해 제거해보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "'hello'\n",
+      "hello\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "fa9bcf46-fa7f-435c-886a-1f54ebec7cd7",
+   "kind": "problem",
+   "prompt": "`capitalize()`: 문자열의 첫 글자를 대문자로, 나머지를 소문자로 변환합니다.<br>\n문자열 `'123abc'`에 `capitalize()`를 적용해보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "'123abc'\n",
+      "123abc\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "75a46694-60f4-4147-8f89-00208e451024",
+   "kind": "problem",
+   "prompt": "문자열 `'PYTHON'`에 `capitalize()`를 적용해보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "'Python'\n",
+      "Python\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ce552bff",
+   "kind": "problem",
+   "prompt": "`lower()`: 문자열 전체를 소문자로 변환합니다.<br>\n문자열 `'PYTHON'`에 `lower()`를 적용해보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "'python'\n",
+      "python\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "a6d9dcde",
+   "kind": "problem",
+   "prompt": "`upper()`: 문자열 전체를 대문자로 변환합니다.<br>\n문자열 `'123abc'`에 `upper()`를 적용해보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "'123ABC'\n",
+      "123ABC\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "31103f7c",
+   "kind": "problem",
+   "prompt": "## 문자열 포매팅\n다음과 같은 문자열 포매팅을 통해 문자열 안에 변수나 값을 삽입할 수 있습니다.\n```python\nname = 'Bob'\nage = 30\nf'My name is {name} and I am {age} years old.'\n```\n위의 포매팅 방법을 활용해 변수 `name`과 `age`의 값을 바꿔 문자열을 출력해보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "My name is Alice and I am 20 years old.\n"
+     ]
+    }
+   ]
+  }
+ ],
+ "problemCount": 23
+}

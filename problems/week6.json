@@ -1,0 +1,201 @@
+{
+ "week": 6,
+ "title": "Data Types Ⅱ",
+ "items": [
+  {
+   "id": "8a71a5c9-13be-4341-b324-ae027ceaa63f",
+   "kind": "problem",
+   "prompt": "## 딕셔너리 기본과 조작\n딕셔너리는 키-값 쌍으로 데이터를 저장하는 구조입니다.<br>\n키를 통해 값을 효율적으로 조회하거나 수정할 수 있습니다.<br>\n\n딕셔너리 `person = {'name': 'Alice', 'age': 25}`에서 이름(name)을 출력해보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "'Alice'\n",
+      "Alice\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "a5890de1-55bf-4da0-9514-6b4e0a8d923b",
+   "kind": "example",
+   "prompt": "`in`을 활용해 키 `'age'`가 `person` 딕셔너리에 존재하는지 확인해보세요.",
+   "code": "person = {'name': 'Alice', 'age': 25}\nprint('age' in person)\n",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "True\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "e155991a-7c08-4a23-a703-9c423059eea4",
+   "kind": "example",
+   "prompt": "`get()`을 활용해 키 `'name'`에 해당하는 값을 가져와 출력해보세요.",
+   "code": "person = {'name': 'Alice', 'age': 25}\nprint(person.get('name'))\n",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "'Alice'\n",
+      "Alice\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "54208f0f",
+   "kind": "example",
+   "prompt": "`keys()`를 활용해 딕셔너리의 모든 키를 출력해보세요.",
+   "code": "person = {'name': 'Alice', 'age': 25}\nprint(person.keys())\n",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "dict_keys(['name', 'age'])\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "18c8e73f",
+   "kind": "example",
+   "prompt": "`values()`를 활용해 딕셔너리의 모든 값을 출력해보세요.",
+   "code": "# 딕셔너리 'person'을 다시 생성합니다.\nperson = {'name': 'Alice', 'age': 25}\n# 딕셔너리의 모든 '값'들을 출력합니다.\nprint(person.values())\n",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "dict_values(['Alice', 25])\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "167674f0",
+   "kind": "example",
+   "prompt": "`items()`를 활용해 딕셔너리의 모든 키-값 쌍을 출력해보세요.",
+   "code": "# 딕셔너리 'person'을 다시 생성합니다.\nperson = {'name': 'Alice', 'age': 25}\n# 딕셔너리의 모든 '키-값' 쌍을 출력합니다.\nprint(person.items())\n",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "dict_items([('name', 'Alice'), ('age', 25)])\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "cc5c4372-66bc-41b3-82af-2a1d1df76b95",
+   "kind": "example",
+   "prompt": "`del`을 활용해 키 `'age'`와 해당 값을 삭제해보세요.",
+   "code": "# 딕셔너리 'person'을 다시 생성합니다.\nperson = {'name': 'Alice', 'age': 25}\n# 'age' 키와 해당하는 값을 삭제합니다.\ndel person['age']\n# 삭제 후 딕셔너리를 출력하여 확인합니다.\nprint(person)\n",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "{'name': 'Alice'}\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "3aea5339",
+   "kind": "example",
+   "prompt": "## 집합(Set) 사용법\n집합은 중복을 허용하지 않는 비순서 컬렉션입니다.<br>\n수학적 집합 연산이나 중복 제거에 유용하게 사용됩니다.<br>\n\n집합 `s = set([1, 2, 2, 3])`을 생성하고 출력해보세요.",
+   "code": "# 중복된 요소를 가진 리스트로 집합 's'를 생성합니다.\ns = set([1, 2, 2, 3])\n# 생성된 집합을 출력합니다. 중복된 2는 하나만 남습니다.\nprint(s)\n",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "{1, 2, 3}\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "56a6dd44",
+   "kind": "example",
+   "prompt": "`add()`를 활용해 집합 `s`에 숫자 4를 추가해보세요.",
+   "code": "# 집합 's'를 다시 생성합니다.\ns = set([1, 2, 3])\n# 집합에 숫자 4를 추가합니다.\ns.add(4)\n# 변경된 집합을 출력합니다.\nprint(s)\n",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "{1, 2, 3, 4}\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "46979c12",
+   "kind": "example",
+   "prompt": "`remove()`를 활용해 집합 `s`에서 숫자 2를 제거해보세요.",
+   "code": "# 집합 's'를 다시 생성합니다.\ns = set([1, 2, 3])  # 집합 생성(중복 제거됨)\n# 집합에서 숫자 2를 제거합니다.\ns.remove(2)\n# 변경된 집합을 출력합니다.\nprint(s)\n\n",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "{1, 3, 4}\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "b85ad36d",
+   "kind": "example",
+   "prompt": "`pop()`을 활용해 집합 `s`에서 임의의 요소를 제거하고 출력해보세요.",
+   "code": "# 집합 's'를 다시 생성합니다.\ns = set([1, 3, 4])\n# 집합에서 임의의 요소를 제거하고 그 요소를 출력합니다.\npopped_element = s.pop()\nprint(f\"제거된 요소: {popped_element}\")\n# 변경된 집합을 출력합니다.\nprint(s)\n",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "{3, 4}\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "47d7ea31",
+   "kind": "example",
+   "prompt": "`in`을 활용해 숫자 1이 집합 `s`에 포함되어 있는지 확인해보세요.",
+   "code": "# 집합 's'를 다시 생성합니다.\ns = set([1, 3]) # pop()으로 요소가 하나 제거되었다고 가정합니다.\n# 숫자 1이 집합 's'에 포함되어 있는지 확인하고 결과를 출력합니다.\nprint(1 in s)\n",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "False\n"
+     ]
+    }
+   ]
+  }
+ ],
+ "problemCount": 1
+}

@@ -1,0 +1,391 @@
+{
+ "week": 5,
+ "title": "Data Types Ⅰ",
+ "items": [
+  {
+   "id": "adba54a4",
+   "kind": "problem",
+   "prompt": "## 리스트 생성과 인덱싱\n리스트는 여러 값을 하나의 변수로 다룰 수 있는 자료형입니다.<br> \n인덱싱과 슬라이싱을 통해 각 요소에 접근하거나 일부를 잘라낼 수 있습니다.<br> \n\n숫자 10, 20, 30을 담은 리스트를 생성하고 출력해보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "[10, 20, 30]\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "dfbe66c7",
+   "kind": "problem",
+   "prompt": "문자열 `'abc'`를 `list()`를 활용해 리스트로 변환해 출력해보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "['a', 'b', 'c']\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "457315b2",
+   "kind": "problem",
+   "prompt": "리스트 `a = [10, 20, 30]`에서 인덱스를 활용해 첫 번째 요소를 출력해보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "10\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "87dd6af6",
+   "kind": "problem",
+   "prompt": "리스트 `a = [1, 2, 3, 4, 5]`에서 슬라이싱을 활용해 중간 3개의 요소를 확인해보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "[2, 3, 4]\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "f11841a1",
+   "kind": "problem",
+   "prompt": "## 연산과 포함 여부\n`+`, `*`, `in` 등의 연산자를 이용해 리스트를 합치거나 반복하고,<br> \n특정 값이 포함되어 있는지 확인할 수 있습니다.\n\n`+` 연산자를 활용해 리스트 `[1, 2]`와 `[3, 4]`를 합쳐 출력해보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "[1, 2, 3, 4]\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "d783654c",
+   "kind": "problem",
+   "prompt": "`*` 연산자를 활용해 `[0]`을 세 번 반복한 결과를 출력해보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "[0, 0, 0]\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "b6ad9dba",
+   "kind": "problem",
+   "prompt": "`in`을 활용해 숫자 `2`가 리스트 `[1, 2, 3]`에 포함되는지 확인해보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "True\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "61b7c13f",
+   "kind": "problem",
+   "prompt": "`len()`을 활용해 리스트 `[1, 2, 3]`의 길이를 출력해보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "3\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "3406dfba",
+   "kind": "problem",
+   "prompt": "## 리스트 메서드\n리스트는 값을 추가하거나 제거하는 다양한 메서드를 제공합니다. <br>\n`append(value)`, `insert(index, value)`, `remove(value)` 등으로 리스트를 동적으로 조작할 수 있습니다.\n\n`append()`를 활용해 리스트 `[1, 2]`에 숫자 3을 추가해보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "[1, 2, 3]\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "5bf4ec87",
+   "kind": "problem",
+   "prompt": "`insert()`를 활용해 리스트 `[1, 2]`의 인덱스 1에 숫자 99를 삽입해보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "[1, 99, 2]\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "bbc6b83f",
+   "kind": "problem",
+   "prompt": "`remove()`를 활용해 리스트 `[1, 2, 3]`에서 숫자 2를 제거해보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "[1, 3]\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "a0b5f977-bd43-4269-ba43-f4afa08b8700",
+   "kind": "problem",
+   "prompt": "`pop()`을 활용해 리스트 `[1, 2, 3]`의 마지막 요소를 제거하고 반환해보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "[1, 2]\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "5b19813f",
+   "kind": "problem",
+   "prompt": "`clear()`를 활용해 리스트 `[1, 2, 3]`의 모든 요소를 제거해보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "[]\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "a63135b2",
+   "kind": "problem",
+   "prompt": "`del`을 활용해 리스트 `[1, 2, 3]`에서 첫 번째 요소를 삭제해보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "[2, 3]\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ffc19039",
+   "kind": "problem",
+   "prompt": "`sort()`를 활용해 리스트 `[3, 1, 2]`를 오름차순으로 정렬해보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "[1, 2, 3]\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "839c5873",
+   "kind": "problem",
+   "prompt": "## 튜플 기본과 조작\n튜플은 리스트와 유사하지만 변경할 수 없는 자료형입니다. <br>\n고정된 값을 저장하거나 불변 데이터를 다룰 때 유용합니다.<br>\n\n튜플 `(1, 2, 3)`을 생성하고 출력해보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "(1, 2, 3)\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "dff44d3a",
+   "kind": "problem",
+   "prompt": "튜플의 요소는 변경 불가능하다는 것을 확인하기 위해 첫 번째 요소를 수정해보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "TypeError: 'tuple' object does not support item assignment\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "4fa33832",
+   "kind": "problem",
+   "prompt": "튜플 `t = (1, 2, 3)`에서 첫 번째 요소를 출력해보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "1\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "fa568736",
+   "kind": "problem",
+   "prompt": "튜플 `t = (1, 2, 3, 4)`에서 슬라이싱을 활용해 일부 요소를 확인해보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "(2, 3)\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "23e3b8dc",
+   "kind": "problem",
+   "prompt": "튜플 `(1, 2)`와 `(3, 4)`를 `+` 연산자로 이어붙여보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "(1, 2, 3, 4)\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "2f190653",
+   "kind": "problem",
+   "prompt": "`*` 연산자를 활용해 `(0,)`을 네 번 반복한 튜플을 생성해보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "(0, 0, 0, 0)\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "1b493751",
+   "kind": "problem",
+   "prompt": "`len()`을 활용해 튜플 `(1, 2, 3)`의 길이를 확인해보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "3\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "fb5a7655",
+   "kind": "problem",
+   "prompt": "`count()`를 활용해 튜플 `(1, 2, 2, 3)`에서 2의 개수를 세어보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "2\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "9fe232b5",
+   "kind": "problem",
+   "prompt": "`index()`를 활용해 튜플 `(1, 2, 3)`에서 숫자 2의 인덱스를 확인해보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "1\n"
+     ]
+    }
+   ]
+  }
+ ],
+ "problemCount": 24
+}

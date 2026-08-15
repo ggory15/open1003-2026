@@ -7,6 +7,15 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
   <link rel="stylesheet" href="css/style.css">
+  <style>
+    .code-row td { background: #fafaf8; }
+    .code-row pre {
+      margin: 6px 0; padding: 10px 14px; background: #fff; border: 1px solid var(--line);
+      border-radius: 8px; font-family: Consolas, monospace; font-size: 12.5px;
+      overflow-x: auto; white-space: pre-wrap; max-width: 900px;
+    }
+    .code-row .pnum { font-weight: 700; font-size: 12.5px; }
+  </style>
 </head>
 <body>
   <header id="site-header"></header>
@@ -15,34 +24,34 @@
     <div id="guard"></div>
 
     <div id="panel" hidden>
-      <h2 class="section" style="margin-top:8px;">제출 현황</h2>
+      <h2 class="section" style="margin-top:8px;">숙제 풀이 현황</h2>
       <div class="card">
         <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
           <label class="field" style="margin:0;">주차
             <select id="week-select"></select>
           </label>
-          <button class="btn btn-outline" id="btn-zip" style="margin-top:22px;">전체 ZIP 다운로드</button>
+          <button class="btn btn-outline" id="btn-zip" style="margin-top:22px;">학생 코드 ZIP 다운로드</button>
           <span id="zip-progress" class="muted" style="margin-top:22px;"></span>
         </div>
 
         <div class="stat-row" id="stats"></div>
 
         <div class="table-wrap">
-          <table class="data" id="sub-table">
+          <table class="data" id="prog-table">
             <thead>
-              <tr><th>#</th><th>학번</th><th>이름</th><th>이메일</th><th>제출 시각</th><th>상태</th><th></th></tr>
+              <tr><th>#</th><th>학번</th><th>이름</th><th>이메일</th><th>통과</th><th>상태</th><th>마지막 활동</th><th></th></tr>
             </thead>
             <tbody></tbody>
           </table>
         </div>
 
-        <h3 style="font-size:16px;margin:24px 0 8px;">미제출자</h3>
+        <h3 style="font-size:16px;margin:24px 0 8px;">미시작 학생</h3>
         <div class="pill-list" id="missing"></div>
       </div>
 
       <h2 class="section">마감일 관리</h2>
       <div class="card">
-        <p class="muted" style="margin-top:0;">마감일을 비워두면 그 주차는 마감 없이 상시 제출로 처리됩니다. 마감 이후 제출은 자동으로 "지각"으로 표시됩니다(차단하지는 않음).</p>
+        <p class="muted" style="margin-top:0;">마감일을 비워두면 그 주차는 마감 없이 상시 진행됩니다. 마감 이후에 통과한 문제는 자동으로 "지각"으로 표시됩니다(차단하지는 않음).</p>
         <div class="table-wrap">
           <table class="data" id="deadline-table">
             <thead><tr><th>주차</th><th>제목</th><th>마감일시</th><th></th></tr></thead>
@@ -56,7 +65,7 @@
         <p class="muted" style="margin-top:0;">사이트에 가입한 학생 명단입니다. 총 <strong id="student-count">0</strong>명.</p>
         <div class="table-wrap">
           <table class="data" id="student-table">
-            <thead><tr><th>#</th><th>학번</th><th>이름</th><th>이메일</th><th>가입일</th><th>제출 수</th></tr></thead>
+            <thead><tr><th>#</th><th>학번</th><th>이름</th><th>이메일</th><th>가입일</th><th>전체 통과 문제</th></tr></thead>
             <tbody></tbody>
           </table>
         </div>
@@ -69,64 +78,114 @@
   <script src="js/config.js"></script>
   <script src="js/app.js"></script>
   <script>
-    const HW_WEEKS = CONFIG.WEEKS.filter((w) => w.homework).map((w) => w.week);
-    let students = [];      // 관리자를 제외한 profiles
-    let allSubs = [];       // 전체 submissions
+    let students = [];      // 관리자 제외 profiles
+    let summary = [];       // hw_summary 전체 (user_id, week, passed_count, any_late, last_activity)
+    let counts = {};        // week -> 문제 수
+    let problemsCache = {}; // week -> problems json
+
+    // supabase 1000행 제한을 넘는 경우를 위한 페이지네이션 조회
+    async function fetchAll(build) {
+      const all = [];
+      for (let from = 0; ; from += 1000) {
+        const { data, error } = await build().range(from, from + 999);
+        if (error) { toast("조회 실패: " + error.message, "error"); break; }
+        all.push(...(data || []));
+        if (!data || data.length < 1000) break;
+      }
+      return all;
+    }
+
+    async function loadProblems(week) {
+      if (!problemsCache[week]) {
+        problemsCache[week] = await fetch(`problems/week${week}.json`).then((r) => r.json());
+      }
+      return problemsCache[week];
+    }
 
     async function loadRoster() {
-      const [{ data: profiles }, { data: admins }, { data: subs }] = await Promise.all([
-        sb.from("profiles").select("*").order("student_id"),
-        sb.from("admins").select("email"),
-        sb.from("submissions").select("*"),
+      const [profiles, admins, sums, cnt] = await Promise.all([
+        fetchAll(() => sb.from("profiles").select("*").order("student_id")),
+        sb.from("admins").select("email").then((r) => r.data || []),
+        fetchAll(() => sb.from("hw_summary").select("*")),
+        fetch("problems/index.json").then((r) => r.json()),
       ]);
-      const adminEmails = new Set((admins || []).map((a) => a.email.toLowerCase()));
-      students = (profiles || []).filter((p) => !adminEmails.has((p.email || "").toLowerCase()));
-      allSubs = subs || [];
+      const adminEmails = new Set(admins.map((a) => a.email.toLowerCase()));
+      students = profiles.filter((p) => !adminEmails.has((p.email || "").toLowerCase()));
+      summary = sums;
+      counts = cnt;
     }
 
     function renderWeek(week) {
-      const subs = allSubs.filter((s) => s.week === week);
-      const byUser = new Map(subs.map((s) => [s.user_id, s]));
-      const submitted = students.filter((p) => byUser.has(p.id));
+      const total = counts[String(week)] || 0;
+      const byUser = new Map(summary.filter((s) => s.week === week).map((s) => [s.user_id, s]));
+      const started = students.filter((p) => byUser.has(p.id));
+      const complete = started.filter((p) => byUser.get(p.id).passed_count >= total);
       const missing = students.filter((p) => !byUser.has(p.id));
-      const late = submitted.filter((p) => byUser.get(p.id).is_late);
 
       $("#stats").innerHTML = `
         <div class="stat"><div class="num">${students.length}</div><div class="lbl">수강생(가입)</div></div>
-        <div class="stat"><div class="num">${submitted.length}</div><div class="lbl">제출</div></div>
-        <div class="stat"><div class="num" style="color:var(--warn)">${late.length}</div><div class="lbl">지각</div></div>
-        <div class="stat"><div class="num" style="color:var(--bad)">${missing.length}</div><div class="lbl">미제출</div></div>`;
+        <div class="stat"><div class="num" style="color:var(--ok)">${complete.length}</div><div class="lbl">전부 통과</div></div>
+        <div class="stat"><div class="num">${started.length - complete.length}</div><div class="lbl">진행 중</div></div>
+        <div class="stat"><div class="num" style="color:var(--bad)">${missing.length}</div><div class="lbl">미시작</div></div>`;
 
-      const tbody = $("#sub-table tbody");
-      tbody.innerHTML = submitted.map((p, i) => {
+      const tbody = $("#prog-table tbody");
+      tbody.innerHTML = started.map((p, i) => {
         const s = byUser.get(p.id);
+        const done = s.passed_count >= total && total > 0;
         return `<tr>
           <td>${i + 1}</td>
           <td>${esc(p.student_id)}</td>
           <td>${esc(p.name)}</td>
           <td class="muted">${esc(p.email)}</td>
-          <td>${fmtDate(s.submitted_at)}</td>
-          <td>${s.is_late ? '<span class="chip chip-warn">지각</span>' : '<span class="chip chip-ok">정상</span>'}</td>
-          <td>
-            <a class="btn btn-ghost btn-sm" href="viewer.html?week=${week}&uid=${p.id}">미리보기</a>
-            <button class="btn btn-ghost btn-sm" data-dl="${p.id}" data-name="${esc(p.student_id)}_${esc(p.name)}">다운로드</button>
-          </td>
+          <td><strong>${s.passed_count}</strong> / ${total}</td>
+          <td>${done
+                ? (s.any_late ? '<span class="chip chip-warn">완료(지각)</span>' : '<span class="chip chip-ok">완료</span>')
+                : '<span class="chip chip-none">진행 중</span>'}</td>
+          <td>${fmtDate(s.last_activity)}</td>
+          <td><button class="btn btn-ghost btn-sm" data-code="${p.id}" data-name="${esc(p.name)}">코드 보기</button></td>
         </tr>`;
-      }).join("") || `<tr><td colspan="7" class="muted">아직 제출이 없습니다.</td></tr>`;
+      }).join("") || `<tr><td colspan="8" class="muted">아직 시작한 학생이 없습니다.</td></tr>`;
 
-      // 개별 다운로드
-      $$("#sub-table [data-dl]").forEach((btn) => {
-        btn.onclick = async () => {
-          const path = `${btn.dataset.dl}/week${week}.ipynb`;
-          const { data: blob, error } = await sb.storage.from("submissions").download(path);
-          if (error) { toast("다운로드 실패: " + error.message, "error"); return; }
-          saveBlob(blob, `${week}주차_${btn.dataset.name}.ipynb`);
-        };
+      $$("#prog-table [data-code]").forEach((btn) => {
+        btn.onclick = () => toggleCode(btn, week);
       });
 
       $("#missing").innerHTML = missing.length
         ? missing.map((p) => `<span class="pill">${esc(p.student_id)} ${esc(p.name)}</span>`).join("")
-        : `<span class="muted">미제출자가 없습니다 🎉</span>`;
+        : `<span class="muted">모든 학생이 시작했습니다 🎉</span>`;
+    }
+
+    async function toggleCode(btn, week) {
+      const tr = btn.closest("tr");
+      if (tr.nextElementSibling && tr.nextElementSibling.classList.contains("code-row")) {
+        tr.nextElementSibling.remove();
+        return;
+      }
+      const probs = await loadProblems(week);
+      const { data: rows } = await sb.from("hw_progress")
+        .select("problem_id, code, passed, is_late, updated_at")
+        .eq("user_id", btn.dataset.code).eq("week", week);
+      const byId = new Map((rows || []).map((r) => [r.problem_id, r]));
+
+      let pno = 0;
+      const blocks = [];
+      probs.items.forEach((item) => {
+        if (item.kind !== "problem") return;
+        pno++;
+        const r = byId.get(item.id);
+        if (!r) return;
+        blocks.push(`
+          <div>
+            <span class="pnum">문제 ${pno}</span>
+            ${r.passed ? '<span class="chip chip-ok">통과</span>' : '<span class="chip chip-none">미통과</span>'}
+            ${r.is_late ? '<span class="chip chip-warn">지각</span>' : ""}
+            <pre>${esc(r.code || "(코드 없음)")}</pre>
+          </div>`);
+      });
+      const row = document.createElement("tr");
+      row.className = "code-row";
+      row.innerHTML = `<td colspan="8">${blocks.join("") || '<span class="muted">기록이 없습니다.</span>'}</td>`;
+      tr.after(row);
     }
 
     function saveBlob(blob, filename) {
@@ -138,36 +197,48 @@
     }
 
     async function downloadZip(week) {
-      const subs = allSubs.filter((s) => s.week === week);
-      if (!subs.length) { toast("이 주차에는 제출이 없습니다.", "error"); return; }
-      const byId = new Map(students.map((p) => [p.id, p]));
-      const zip = new JSZip();
       const prog = $("#zip-progress");
-      let done = 0;
+      prog.textContent = "데이터 수집 중…";
+      const probs = await loadProblems(week);
+      const rows = await fetchAll(() => sb.from("hw_progress")
+        .select("user_id, problem_id, code, passed, is_late").eq("week", week));
+      if (!rows.length) { toast("이 주차에는 기록이 없습니다.", "error"); prog.textContent = ""; return; }
 
-      for (const s of subs) {
-        const p = byId.get(s.user_id);
-        const label = p ? `${p.student_id}_${p.name}` : s.user_id.slice(0, 8);
-        const { data: blob, error } = await sb.storage.from("submissions").download(s.file_path);
-        if (!error && blob) zip.file(`${week}주차_${label}.ipynb`, blob);
-        done++;
-        prog.textContent = `내려받는 중… ${done}/${subs.length}`;
+      const pnum = new Map();
+      let n = 0;
+      probs.items.forEach((it) => { if (it.kind === "problem") pnum.set(it.id, ++n); });
+      const byId = new Map(students.map((p) => [p.id, p]));
+      const byUser = new Map();
+      rows.forEach((r) => {
+        if (!byUser.has(r.user_id)) byUser.set(r.user_id, []);
+        byUser.get(r.user_id).push(r);
+      });
+
+      const zip = new JSZip();
+      for (const [uid, list] of byUser) {
+        const p = byId.get(uid);
+        const label = p ? `${p.student_id}_${p.name}` : uid.slice(0, 8);
+        list.sort((a, b) => (pnum.get(a.problem_id) || 99) - (pnum.get(b.problem_id) || 99));
+        const body = list.map((r) =>
+          `# ===== 문제 ${pnum.get(r.problem_id) || "?"} — ${r.passed ? "통과" : "미통과"}${r.is_late ? " (지각)" : ""} =====\n${r.code || ""}\n`
+        ).join("\n");
+        zip.file(`${week}주차_${label}.py`, body);
       }
       prog.textContent = "압축 중…";
       const out = await zip.generateAsync({ type: "blob" });
-      saveBlob(out, `${CONFIG.COURSE_NAME}_${week}주차_제출.zip`);
+      saveBlob(out, `${CONFIG.COURSE_NAME}_${week}주차_코드.zip`);
       prog.textContent = "";
     }
 
     async function renderDeadlines() {
       const { data: dls } = await sb.from("deadlines").select("*");
       const map = new Map((dls || []).map((d) => [d.week, d.due_at]));
+      const weeks = Object.keys(counts).map(Number).sort((a, b) => a - b);
       const tbody = $("#deadline-table tbody");
 
-      tbody.innerHTML = HW_WEEKS.map((w) => {
+      tbody.innerHTML = weeks.map((w) => {
         const info = weekInfo(w);
         const due = map.get(w);
-        // datetime-local 은 로컬(한국) 시간 기준 문자열을 사용
         let val = "";
         if (due) {
           const d = new Date(due);
@@ -176,7 +247,7 @@
         }
         return `<tr>
           <td><strong>${w}주차</strong></td>
-          <td>${esc(info.title)}</td>
+          <td>${esc(info ? info.title : "")}</td>
           <td><input type="datetime-local" id="due-${w}" value="${val}"
                      style="border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-family:inherit;"></td>
           <td><button class="btn btn-ghost btn-sm" data-save="${w}">저장</button></td>
@@ -197,8 +268,9 @@
 
     function renderStudents() {
       $("#student-count").textContent = students.length;
-      const countByUser = new Map();
-      allSubs.forEach((s) => countByUser.set(s.user_id, (countByUser.get(s.user_id) || 0) + 1));
+      const totalProblems = Object.values(counts).reduce((a, b) => a + b, 0);
+      const passedByUser = new Map();
+      summary.forEach((s) => passedByUser.set(s.user_id, (passedByUser.get(s.user_id) || 0) + s.passed_count));
       $("#student-table tbody").innerHTML = students.map((p, i) => `
         <tr>
           <td>${i + 1}</td>
@@ -206,7 +278,7 @@
           <td>${esc(p.name)}</td>
           <td class="muted">${esc(p.email)}</td>
           <td>${fmtDate(p.created_at)}</td>
-          <td>${countByUser.get(p.id) || 0} / ${HW_WEEKS.length}</td>
+          <td>${passedByUser.get(p.id) || 0} / ${totalProblems}</td>
         </tr>`).join("") || `<tr><td colspan="6" class="muted">아직 가입한 학생이 없습니다.</td></tr>`;
     }
 
@@ -223,10 +295,15 @@
       }
       $("#panel").hidden = false;
 
-      const sel = $("#week-select");
-      sel.innerHTML = HW_WEEKS.map((w) => `<option value="${w}">${w}주차 — ${esc(weekInfo(w).title)}</option>`).join("");
-
       await loadRoster();
+
+      const weeks = Object.keys(counts).map(Number).sort((a, b) => a - b);
+      const sel = $("#week-select");
+      sel.innerHTML = weeks.map((w) => {
+        const info = weekInfo(w);
+        return `<option value="${w}">${w}주차 — ${esc(info ? info.title : "")}</option>`;
+      }).join("");
+
       renderWeek(Number(sel.value));
       renderStudents();
       await renderDeadlines();

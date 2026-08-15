@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>숙제 풀기 — 미래교육2</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/lib/codemirror.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/github.min.css">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .hw-top {
+      position: sticky; top: 60px; z-index: 5;
+      background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+      padding: 14px 20px; margin-bottom: 20px; box-shadow: var(--shadow);
+      display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    }
+    .hw-progressbar { flex: 1; min-width: 160px; height: 10px; background: var(--bg); border-radius: 999px; overflow: hidden; }
+    .hw-progressbar > div { height: 100%; background: var(--ok); width: 0%; transition: width .3s; }
+    .py-status { font-size: 13px; color: var(--muted); }
+    .py-status.ready { color: var(--ok); font-weight: 700; }
+    .hw-item { margin-bottom: 26px; }
+    .hw-prompt { margin-bottom: 10px; }
+    .hw-prompt pre { background: #f4f4f2; border-radius: 8px; padding: 10px 14px; overflow-x: auto; font-size: 13.5px; }
+    .hw-prompt code { background: #f4f4f2; border-radius: 4px; padding: 1px 5px; font-size: .92em; }
+    .hw-prompt pre code { background: none; padding: 0; }
+    .hw-prompt h2 { font-size: 19px; border-bottom: 2px solid var(--accent-soft); padding-bottom: 6px; margin: 26px 0 10px; }
+    .hw-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+    .hw-card.passed { border-color: var(--ok); }
+    .hw-card-head {
+      display: flex; align-items: center; gap: 10px; padding: 8px 14px;
+      background: var(--bg); border-bottom: 1px solid var(--line); font-size: 13px;
+    }
+    .hw-num { font-weight: 800; color: var(--accent); }
+    .hw-head-right { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+    .CodeMirror { height: auto; font-family: Consolas, "D2Coding", monospace; font-size: 14px; line-height: 1.5; padding: 6px 0; }
+    .hw-stdin { display: flex; gap: 8px; align-items: center; padding: 8px 14px; border-top: 1px dashed var(--line); font-size: 13px; }
+    .hw-stdin input { flex: 1; border: 1px solid var(--line); border-radius: 7px; padding: 5px 10px; font-family: Consolas, monospace; font-size: 13px; }
+    .hw-out { border-top: 1px solid var(--line); padding: 10px 14px; font-family: Consolas, monospace; font-size: 13px; white-space: pre-wrap; background: #fcfcfb; max-height: 260px; overflow: auto; }
+    .hw-out.err { color: var(--bad); background: var(--bad-soft); }
+    .hw-out:empty { display: none; }
+    .hw-expected { border-top: 1px dashed var(--line); padding: 8px 14px; font-size: 12.5px; color: var(--muted); font-family: Consolas, monospace; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <header id="site-header"></header>
+
+  <main class="container container-narrow">
+    <div id="content"><p class="muted" style="margin-top:24px;">불러오는 중…</p></div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/lib/codemirror.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/python/python.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/addon/display/placeholder.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/pyrunner.js"></script>
+  <script>
+    const week = Number(new URLSearchParams(location.search).get("week"));
+    let session, data, editors = {}, states = {};   // states[problemId] = {passed}
+
+    function normalize(s) {
+      return String(s ?? "").replace(/\r\n/g, "\n")
+        .split("\n").map((l) => l.replace(/\s+$/, "")).join("\n")
+        .replace(/\n+$/, "");
+    }
+
+    // 채점 판정: tests 중 하나라도 통과하면 통과
+    function judge(item, outputsPerTest) {
+      for (let t = 0; t < item.tests.length; t++) {
+        const out = normalize(outputsPerTest[t]);
+        if (item.check === "regex") {
+          if (item.pattern && new RegExp(item.pattern).test(out)) return true;
+        } else if (item.check === "includes") {
+          const anyCand = (item.tests[t].expected || []).some((cand) => {
+            const lines = normalize(cand).split("\n").filter((l) => l.trim());
+            let pos = 0;
+            for (const line of lines) {
+              const found = out.indexOf(line.trim(), pos);
+              if (found < 0) return false;
+              pos = found + line.trim().length;
+            }
+            return true;
+          });
+          if (anyCand) return true;
+        } else {
+          if ((item.tests[t].expected || []).some((cand) => normalize(cand) === out)) return true;
+        }
+      }
+      return false;
+    }
+
+    function codeOf(item, idx) {
+      if (item.kind === "example") return editors[item.id] ? editors[item.id].getValue() : item.code;
+      return editors[item.id] ? editors[item.id].getValue() : "";
+    }
+
+    // idx번째 셀까지의 실행 시퀀스 구성 (각 셀은 기본 stdin 사용)
+    function buildCells(uptoIdx) {
+      return data.items.slice(0, uptoIdx + 1).map((it, j) => ({
+        code: codeOf(it, j),
+        stdin: (it.tests && it.tests[0] ? it.tests[0].stdin : "") || "",
+      }));
+    }
+
+    async function runItem(idx) {
+      const item = data.items[idx];
+      const outEl = $(`#out-${idx}`);
+      outEl.className = "hw-out";
+      outEl.textContent = "실행 중…";
+      const cells = buildCells(idx);
+      const stdinBox = $(`#stdin-${idx}`);
+      if (stdinBox) cells[cells.length - 1].stdin = stdinBox.value.replace(/\\n/g, "\n") + "\n";
+      const r = await PyRunner.run(cells, cells.length - 1);
+      if (r.timedout) { outEl.className = "hw-out err"; outEl.textContent = r.error; return; }
+      if (r.errorIndex !== null && r.errorIndex < cells.length - 1) {
+        outEl.className = "hw-out err";
+        outEl.textContent = `앞선 ${r.errorIndex + 1}번 셀에서 오류가 발생했습니다:\n` + (r.error || "");
+        return;
+      }
+      outEl.className = r.ok ? "hw-out" : "hw-out err";
+      outEl.textContent = r.output || "(출력 없음)";
+    }
+
+    async function gradeItem(idx) {
+      const item = data.items[idx];
+      const outEl = $(`#out-${idx}`);
+      const code = codeOf(item, idx);
+      if (!code.trim()) { toast("코드를 먼저 작성해주세요.", "error"); return; }
+      if (item.codePattern && !new RegExp(item.codePattern).test(code)) {
+        outEl.className = "hw-out err";
+        outEl.textContent = "문제에서 요구한 방식(키워드)을 사용했는지 확인해보세요.";
+        return;
+      }
+      outEl.className = "hw-out";
+      outEl.textContent = "채점 중…";
+
+      const outputs = [];
+      let lastResult = null;
+      for (const t of item.tests) {
+        const cells = buildCells(idx);
+        cells[cells.length - 1].stdin = t.stdin || "";
+        const r = await PyRunner.run(cells, cells.length - 1);
+        lastResult = r;
+        if (r.timedout) { outEl.className = "hw-out err"; outEl.textContent = r.error; return; }
+        outputs.push(r.output || "");
+      }
+
+      const passed = judge(item, outputs);
+      outEl.className = passed ? "hw-out" : "hw-out err";
+      outEl.textContent = (outputs[0] || "(출력 없음)") +
+        (passed ? "\n\n✅ 정답입니다!" : "\n\n❌ 아직 기대한 출력과 다릅니다. 다시 시도해보세요.");
+      setPassed(item.id, passed);
+      await saveProgress(item.id, code, passed);
+      updateProgress();
+    }
+
+    function setPassed(pid, passed) {
+      const prev = states[pid]?.passed || false;
+      states[pid] = { passed: prev || passed };   // 한 번 통과하면 유지
+      const card = $(`#card-${pid}`);
+      const chip = $(`#chip-${pid}`);
+      if (states[pid].passed) {
+        card.classList.add("passed");
+        chip.className = "chip chip-ok"; chip.textContent = "통과";
+      } else {
+        chip.className = "chip chip-none"; chip.textContent = "미통과";
+      }
+    }
+
+    async function saveProgress(pid, code, passed) {
+      const { error } = await sb.from("hw_progress").upsert(
+        { user_id: session.user.id, week, problem_id: pid, code, passed },
+        { onConflict: "user_id,week,problem_id" });
+      if (error) toast("기록 저장에 실패했습니다: " + error.message, "error");
+    }
+
+    function updateProgress() {
+      const problems = data.items.filter((i) => i.kind === "problem");
+      const done = problems.filter((i) => states[i.id]?.passed).length;
+      $("#prog-text").textContent = `${done} / ${problems.length} 문제 통과`;
+      $("#prog-fill").style.width = (problems.length ? (done / problems.length) * 100 : 0) + "%";
+    }
+
+    function md(s) {
+      const html = DOMPurify.sanitize(marked.parse(s || ""));
+      return html;
+    }
+
+    async function main() {
+      await renderHeader("home");
+      const box = $("#content");
+      session = await getSession();
+      if (!session) { location.href = "login.html"; return; }
+
+      // 프로필(학번/이름) 확인
+      let profile = await getProfile();
+      if (!profile || !profile.student_id || !profile.name) {
+        box.innerHTML = `
+          <div class="card" style="margin-top:24px;">
+            <h2 style="margin-top:0">프로필 입력</h2>
+            <p class="muted">숙제를 시작하기 전에 학번과 이름을 입력해주세요. (최초 1회)</p>
+            <form id="form-profile">
+              <label class="field">학번 <input id="pf-sid" required value="${esc(profile?.student_id || "")}"></label>
+              <label class="field">이름 <input id="pf-name" required value="${esc(profile?.name || "")}"></label>
+              <button class="btn btn-primary" type="submit">저장</button>
+            </form>
+          </div>`;
+        $("#form-profile").onsubmit = async (e) => {
+          e.preventDefault();
+          const { error } = await sb.from("profiles").upsert({
+            id: session.user.id, email: session.user.email,
+            student_id: $("#pf-sid").value.trim(), name: $("#pf-name").value.trim(),
+          });
+          if (error) toast("저장 실패: " + error.message, "error"); else location.reload();
+        };
+        return;
+      }
+
+      // 문제 데이터 + 마감일 + 기존 기록 로드
+      let res;
+      try {
+        res = await fetch(`problems/week${week}.json`);
+        if (!res.ok) throw new Error();
+        data = await res.json();
+      } catch {
+        box.innerHTML = `<p style="margin-top:24px;">이 주차의 숙제를 찾을 수 없습니다. <a href="index.html">홈으로</a></p>`;
+        return;
+      }
+      const [{ data: dl }, { data: saved }] = await Promise.all([
+        sb.from("deadlines").select("due_at").eq("week", week).maybeSingle(),
+        sb.from("hw_progress").select("problem_id, code, passed").eq("user_id", session.user.id).eq("week", week),
+      ]);
+      const savedMap = new Map((saved || []).map((r) => [r.problem_id, r]));
+      const due = dl?.due_at || null;
+      const passedDue = due && new Date(due) < new Date();
+
+      let pno = 0;
+      const parts = [];
+      parts.push(`
+        <p style="margin-top:20px;"><a href="index.html">← 목록으로</a></p>
+        <div class="week-head" style="margin-bottom:8px;">
+          <span class="week-num">${week}주차</span>
+          <span class="week-title" style="font-size:21px;">${esc(data.title)}</span>
+        </div>
+        ${due ? `<div class="notice ${passedDue ? "notice-warn" : "notice-info"}">
+          마감: <strong>${fmtDate(due)}</strong>${passedDue ? " — 마감이 지났습니다. 지금 통과한 문제는 지각으로 기록됩니다." : ""}
+        </div>` : ""}
+        <div class="hw-top">
+          <span id="prog-text" style="font-weight:700;font-size:14px;"></span>
+          <div class="hw-progressbar"><div id="prog-fill"></div></div>
+          <span class="py-status" id="py-status">⏳ 파이썬 로딩 중… (최초 1회, 10초 정도)</span>
+        </div>`);
+
+      data.items.forEach((item, idx) => {
+        if (item.prompt) parts.push(`<div class="hw-prompt">${md(item.prompt)}</div>`);
+        const isProblem = item.kind === "problem";
+        if (isProblem) pno++;
+        const savedRow = savedMap.get(item.id);
+        const firstStdin = item.tests && item.tests[0] ? item.tests[0].stdin : "";
+        parts.push(`
+          <div class="hw-item">
+            <div class="hw-card" id="card-${item.id}">
+              <div class="hw-card-head">
+                ${isProblem
+                  ? `<span class="hw-num">문제 ${pno}</span><span class="chip chip-none" id="chip-${item.id}">미시도</span>`
+                  : `<span class="muted" style="font-weight:700;">예제 — 실행해보세요</span>`}
+                <div class="hw-head-right">
+                  <button class="btn btn-ghost btn-sm" data-run="${idx}">▶ 실행</button>
+                  ${isProblem ? `<button class="btn btn-primary btn-sm" data-grade="${idx}">채점</button>` : ""}
+                </div>
+              </div>
+              <textarea id="ed-${item.id}"></textarea>
+              ${firstStdin ? `
+                <div class="hw-stdin">
+                  <span title="input()이 읽어갈 값입니다. \\n 으로 여러 줄을 구분합니다.">⌨ 입력값</span>
+                  <input id="stdin-${idx}" value="${esc(firstStdin.replace(/\n$/, "").replace(/\n/g, "\\n"))}">
+                </div>` : ""}
+              <div class="hw-out" id="out-${idx}"></div>
+            </div>
+          </div>`);
+      });
+      parts.push(`<p class="muted" style="font-size:13px;margin-top:28px;">
+        문제 사이에 변수를 이어서 사용할 수 있습니다(위에서 아래 순서로 실행됩니다).
+        "채점"을 누르면 결과가 자동으로 기록되므로 별도 제출이 필요 없습니다.</p>`);
+      box.innerHTML = parts.join("");
+
+      // 에디터 생성 + 저장된 코드 복원
+      data.items.forEach((item, idx) => {
+        const ta = $(`#ed-${item.id}`);
+        const savedRow = savedMap.get(item.id);
+        ta.value = savedRow?.code || item.code || "";
+        const ed = CodeMirror.fromTextArea(ta, {
+          mode: "python", lineNumbers: true, indentUnit: 4,
+          viewportMargin: Infinity,
+          placeholder: item.kind === "problem" ? "여기에 코드를 작성하세요" : "",
+        });
+        editors[item.id] = ed;
+        if (item.kind === "problem" && savedRow) setPassed(item.id, savedRow.passed);
+      });
+      updateProgress();
+
+      $$("[data-run]").forEach((b) => b.onclick = () => runItem(Number(b.dataset.run)));
+      $$("[data-grade]").forEach((b) => b.onclick = () => gradeItem(Number(b.dataset.grade)));
+
+      // 파이썬 로딩 시작
+      PyRunner.init();
+      PyRunner.onReady(() => {
+        const s = $("#py-status");
+        if (s) { s.className = "py-status ready"; s.textContent = "🐍 파이썬 준비 완료"; }
+      });
+
+      // 프롬프트 안 코드블록 하이라이팅
+      $$(".hw-prompt pre code").forEach((el) => { try { hljs.highlightElement(el); } catch {} });
+    }
+    main();
+  </script>
+</body>
+</html>

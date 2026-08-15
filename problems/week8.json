@@ -1,0 +1,119 @@
+{
+ "week": 8,
+ "title": "Loop (While)",
+ "items": [
+  {
+   "id": "2b065a87",
+   "kind": "problem",
+   "prompt": "## while 반복문\n`while` 반복문은 조건이 참인 동안 코드를 반복 실행합니다. <br>\n조건이 거짓이 되면 반복이 종료됩니다.<br>\n\n1부터 5까지 출력하는 `while`문을 작성해보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "1\n2\n3\n4\n5\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "b730c310-a199-4f1d-85c9-8b391af3dfe4",
+   "kind": "problem",
+   "prompt": "`while`문을 활용해 사용자로부터 'exit'을 입력받을 때까지 계속 입력을 받는 코드를 작성해보세요.\n```python\nuser = input()\nwhile 조건문:\n    user = input()\n```",
+   "code": "",
+   "check": "exact",
+   "codePattern": "while",
+   "tests": [
+    {
+     "stdin": "hello\npython\nexit\n",
+     "expected": [
+      ""
+     ]
+    }
+   ]
+  },
+  {
+   "id": "9a3387c3",
+   "kind": "problem",
+   "prompt": "`while`을 활용해 1부터 10까지 합을 계산해 출력해보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "55\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "c6239409",
+   "kind": "problem",
+   "prompt": "`while`문으로 2의 거듭제곱을 100 이상이 될 때까지 출력해보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "128\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "036447a3",
+   "kind": "problem",
+   "prompt": "리스트 `a = [1, 2, 3]`의 모든 요소를 `while`문과 `len()`을 사용해 출력해보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "1\n2\n3\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "4dbd131b",
+   "kind": "problem",
+   "prompt": "## 반복문 내 제어\n`break`, `continue`, `pass`는 반복문 내부 동작을 제어할 수 있게 도와줍니다.<br>\n\n`break`를 활용해 숫자를 입력받다가 0이면 종료하는 반복문을 작성해보세요.(`while True:` 사용)",
+   "code": "",
+   "check": "exact",
+   "codePattern": "break",
+   "tests": [
+    {
+     "stdin": "1\n2\n3\n0\n",
+     "expected": [
+      ""
+     ]
+    }
+   ]
+  },
+  {
+   "id": "1195397b",
+   "kind": "problem",
+   "prompt": "1부터 10까지의 정수 중 `continue`를 활용해 홀수만 출력하도록 반복문을 작성해보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "1\n3\n5\n7\n9\n"
+     ]
+    }
+   ]
+  }
+ ],
+ "problemCount": 7
+}

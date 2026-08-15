@@ -1,0 +1,189 @@
+{
+ "week": 7,
+ "title": "Conditional Statement",
+ "items": [
+  {
+   "id": "787ca7c7-dd32-47b7-8309-0f4e61f378dc",
+   "kind": "problem",
+   "prompt": "## 조건문 기본\n조건문은 주어진 조건에 따라 프로그램의 흐름을 제어하는 데 사용됩니다. <br>\n`if`, `else`, `elif`를 통해 다양한 분기 처리를 할 수 있습니다.<br>\n\n정수 `3`이 양수인지 검사하여 'positive'를 출력하는 `if`문을 작성해보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "positive\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "a8c7e14f-7d80-44e4-af7c-b33f80f88cc4",
+   "kind": "problem",
+   "prompt": "`if`문을 사용해 리스트 `data = []`가 비어있으면 `'비어 있음'`를 출력하세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "비어 있음\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "bcb84932-0f54-450f-bf49-b3f763fa4e8a",
+   "kind": "problem",
+   "prompt": "`if-else`를 활용해 정수 `3`이 홀수이면 `\"홀수\"`, 짝수이면 `\"짝수\"`를 출력해보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "홀수\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "1379769f-6012-4f88-8075-25d34ec9a250",
+   "kind": "problem",
+   "prompt": "`if-else`를 활용해 두 수 `a = 5`와 `b = 12` 중 큰 수를 출력하세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "12\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "f8f7a93b-00b6-40bc-a370-11adabd5cf23",
+   "kind": "problem",
+   "prompt": "`if-elif-else`를 활용해 점수에 따라 등급(A/B/C)을 출력해보세요.<br>\n`score = 87`을 정의해 사용하세요.\n- 90점 이상: A\n- 80점 이상 90점 미만: B\n- 80점 미만: C",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "B\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "6c915187",
+   "kind": "problem",
+   "prompt": "## 논리 연산자와 input\n`and`, `or`, `not` 등의 논리 연산자는 여러 조건을 결합하여 복잡한 판단을 가능하게 합니다.<br>\n`input()`을 통해 사용자 입력도 처리할 수 있습니다.\n\n `and` 연산자를 활용해 `x = 4`가 짝수이면서 10보다 작으면 `'조건 만족'`를 출력해보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "조건 만족\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "189df8af",
+   "kind": "problem",
+   "prompt": "`or` 연산자를 사용해 `x = 11`가 짝수이거나 10보다 크면 `'조건 만족'`를 출력해보세요.",
+   "code": "",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "",
+     "expected": [
+      "조건 만족\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "6b0521c7",
+   "kind": "problem",
+   "prompt": "`input()`을 활용해 사용자로부터 나이를 입력받고, `if-else`를 활용해 20살 이상이면 `\"성인\"`, 아니면 `\"미성년자\"`를 출력하세요.",
+   "code": "",
+   "check": "includes",
+   "codePattern": "input",
+   "tests": [
+    {
+     "stdin": "21\n",
+     "expected": [
+      "성인\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "12974911-f97a-4166-b644-307caabfe6aa",
+   "kind": "example",
+   "prompt": "`input()`으로 받은 두 수가 모두 짝수이면 `'모두 짝수'`을 출력해보세요.<br>\n다음과 같은 방법들을 통해 두 개 이상의 입력을 받을 수 있습니다.",
+   "code": "a, b = input().split()                       # 한 줄로 입력을 받고 공백을 기준으로 구분 \na = int(a)                                   # 자료형 변환\nb = int(b)\nprint(a, b)",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "10 20\n",
+     "expected": [
+      "10 20\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "905016c0-515f-495d-8331-85e854d55baa",
+   "kind": "example",
+   "prompt": "",
+   "code": "a = int(input())                             # a 입력 및 자료형 변환\nb = int(input())                             # b 입력 및 자료형 변환\nprint(a, b)",
+   "check": "exact",
+   "codePattern": null,
+   "tests": [
+    {
+     "stdin": "10\n20\n",
+     "expected": [
+      "10 20\n"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "63838e16-6200-4d2a-9021-55d7ed9c1a49",
+   "kind": "problem",
+   "prompt": "",
+   "code": "",
+   "check": "includes",
+   "codePattern": "input",
+   "tests": [
+    {
+     "stdin": "10 24\n",
+     "expected": [
+      "모두 짝수\n"
+     ]
+    },
+    {
+     "stdin": "10\n24\n",
+     "expected": [
+      "모두 짝수\n"
+     ]
+    }
+   ]
+  }
+ ],
+ "problemCount": 9
+}
