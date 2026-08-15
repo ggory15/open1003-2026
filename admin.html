@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>관리자 — 미래교육2</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header id="site-header"></header>
+
+  <main class="container">
+    <div id="guard"></div>
+
+    <div id="panel" hidden>
+      <h2 class="section" style="margin-top:8px;">제출 현황</h2>
+      <div class="card">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+          <label class="field" style="margin:0;">주차
+            <select id="week-select"></select>
+          </label>
+          <button class="btn btn-outline" id="btn-zip" style="margin-top:22px;">전체 ZIP 다운로드</button>
+          <span id="zip-progress" class="muted" style="margin-top:22px;"></span>
+        </div>
+
+        <div class="stat-row" id="stats"></div>
+
+        <div class="table-wrap">
+          <table class="data" id="sub-table">
+            <thead>
+              <tr><th>#</th><th>학번</th><th>이름</th><th>이메일</th><th>제출 시각</th><th>상태</th><th></th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <h3 style="font-size:16px;margin:24px 0 8px;">미제출자</h3>
+        <div class="pill-list" id="missing"></div>
+      </div>
+
+      <h2 class="section">마감일 관리</h2>
+      <div class="card">
+        <p class="muted" style="margin-top:0;">마감일을 비워두면 그 주차는 마감 없이 상시 제출로 처리됩니다. 마감 이후 제출은 자동으로 "지각"으로 표시됩니다(차단하지는 않음).</p>
+        <div class="table-wrap">
+          <table class="data" id="deadline-table">
+            <thead><tr><th>주차</th><th>제목</th><th>마감일시</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <h2 class="section">수강생 목록</h2>
+      <div class="card">
+        <p class="muted" style="margin-top:0;">사이트에 가입한 학생 명단입니다. 총 <strong id="student-count">0</strong>명.</p>
+        <div class="table-wrap">
+          <table class="data" id="student-table">
+            <thead><tr><th>#</th><th>학번</th><th>이름</th><th>이메일</th><th>가입일</th><th>제출 수</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3/dist/jszip.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    const HW_WEEKS = CONFIG.WEEKS.filter((w) => w.homework).map((w) => w.week);
+    let students = [];      // 관리자를 제외한 profiles
+    let allSubs = [];       // 전체 submissions
+
+    async function loadRoster() {
+      const [{ data: profiles }, { data: admins }, { data: subs }] = await Promise.all([
+        sb.from("profiles").select("*").order("student_id"),
+        sb.from("admins").select("email"),
+        sb.from("submissions").select("*"),
+      ]);
+      const adminEmails = new Set((admins || []).map((a) => a.email.toLowerCase()));
+      students = (profiles || []).filter((p) => !adminEmails.has((p.email || "").toLowerCase()));
+      allSubs = subs || [];
+    }
+
+    function renderWeek(week) {
+      const subs = allSubs.filter((s) => s.week === week);
+      const byUser = new Map(subs.map((s) => [s.user_id, s]));
+      const submitted = students.filter((p) => byUser.has(p.id));
+      const missing = students.filter((p) => !byUser.has(p.id));
+      const late = submitted.filter((p) => byUser.get(p.id).is_late);
+
+      $("#stats").innerHTML = `
+        <div class="stat"><div class="num">${students.length}</div><div class="lbl">수강생(가입)</div></div>
+        <div class="stat"><div class="num">${submitted.length}</div><div class="lbl">제출</div></div>
+        <div class="stat"><div class="num" style="color:var(--warn)">${late.length}</div><div class="lbl">지각</div></div>
+        <div class="stat"><div class="num" style="color:var(--bad)">${missing.length}</div><div class="lbl">미제출</div></div>`;
+
+      const tbody = $("#sub-table tbody");
+      tbody.innerHTML = submitted.map((p, i) => {
+        const s = byUser.get(p.id);
+        return `<tr>
+          <td>${i + 1}</td>
+          <td>${esc(p.student_id)}</td>
+          <td>${esc(p.name)}</td>
+          <td class="muted">${esc(p.email)}</td>
+          <td>${fmtDate(s.submitted_at)}</td>
+          <td>${s.is_late ? '<span class="chip chip-warn">지각</span>' : '<span class="chip chip-ok">정상</span>'}</td>
+          <td>
+            <a class="btn btn-ghost btn-sm" href="viewer.html?week=${week}&uid=${p.id}">미리보기</a>
+            <button class="btn btn-ghost btn-sm" data-dl="${p.id}" data-name="${esc(p.student_id)}_${esc(p.name)}">다운로드</button>
+          </td>
+        </tr>`;
+      }).join("") || `<tr><td colspan="7" class="muted">아직 제출이 없습니다.</td></tr>`;
+
+      // 개별 다운로드
+      $$("#sub-table [data-dl]").forEach((btn) => {
+        btn.onclick = async () => {
+          const path = `${btn.dataset.dl}/week${week}.ipynb`;
+          const { data: blob, error } = await sb.storage.from("submissions").download(path);
+          if (error) { toast("다운로드 실패: " + error.message, "error"); return; }
+          saveBlob(blob, `${week}주차_${btn.dataset.name}.ipynb`);
+        };
+      });
+
+      $("#missing").innerHTML = missing.length
+        ? missing.map((p) => `<span class="pill">${esc(p.student_id)} ${esc(p.name)}</span>`).join("")
+        : `<span class="muted">미제출자가 없습니다 🎉</span>`;
+    }
+
+    function saveBlob(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = filename;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+    }
+
+    async function downloadZip(week) {
+      const subs = allSubs.filter((s) => s.week === week);
+      if (!subs.length) { toast("이 주차에는 제출이 없습니다.", "error"); return; }
+      const byId = new Map(students.map((p) => [p.id, p]));
+      const zip = new JSZip();
+      const prog = $("#zip-progress");
+      let done = 0;
+
+      for (const s of subs) {
+        const p = byId.get(s.user_id);
+        const label = p ? `${p.student_id}_${p.name}` : s.user_id.slice(0, 8);
+        const { data: blob, error } = await sb.storage.from("submissions").download(s.file_path);
+        if (!error && blob) zip.file(`${week}주차_${label}.ipynb`, blob);
+        done++;
+        prog.textContent = `내려받는 중… ${done}/${subs.length}`;
+      }
+      prog.textContent = "압축 중…";
+      const out = await zip.generateAsync({ type: "blob" });
+      saveBlob(out, `${CONFIG.COURSE_NAME}_${week}주차_제출.zip`);
+      prog.textContent = "";
+    }
+
+    async function renderDeadlines() {
+      const { data: dls } = await sb.from("deadlines").select("*");
+      const map = new Map((dls || []).map((d) => [d.week, d.due_at]));
+      const tbody = $("#deadline-table tbody");
+
+      tbody.innerHTML = HW_WEEKS.map((w) => {
+        const info = weekInfo(w);
+        const due = map.get(w);
+        // datetime-local 은 로컬(한국) 시간 기준 문자열을 사용
+        let val = "";
+        if (due) {
+          const d = new Date(due);
+          const pad = (n) => String(n).padStart(2, "0");
+          val = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        }
+        return `<tr>
+          <td><strong>${w}주차</strong></td>
+          <td>${esc(info.title)}</td>
+          <td><input type="datetime-local" id="due-${w}" value="${val}"
+                     style="border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-family:inherit;"></td>
+          <td><button class="btn btn-ghost btn-sm" data-save="${w}">저장</button></td>
+        </tr>`;
+      }).join("");
+
+      $$("#deadline-table [data-save]").forEach((btn) => {
+        btn.onclick = async () => {
+          const w = Number(btn.dataset.save);
+          const raw = $(`#due-${w}`).value;
+          const due_at = raw ? new Date(raw).toISOString() : null;
+          const { error } = await sb.from("deadlines").upsert({ week: w, due_at });
+          if (error) toast("저장 실패: " + error.message, "error");
+          else toast(`${w}주차 마감일이 저장되었습니다.`, "ok");
+        };
+      });
+    }
+
+    function renderStudents() {
+      $("#student-count").textContent = students.length;
+      const countByUser = new Map();
+      allSubs.forEach((s) => countByUser.set(s.user_id, (countByUser.get(s.user_id) || 0) + 1));
+      $("#student-table tbody").innerHTML = students.map((p, i) => `
+        <tr>
+          <td>${i + 1}</td>
+          <td>${esc(p.student_id)}</td>
+          <td>${esc(p.name)}</td>
+          <td class="muted">${esc(p.email)}</td>
+          <td>${fmtDate(p.created_at)}</td>
+          <td>${countByUser.get(p.id) || 0} / ${HW_WEEKS.length}</td>
+        </tr>`).join("") || `<tr><td colspan="6" class="muted">아직 가입한 학생이 없습니다.</td></tr>`;
+    }
+
+    async function main() {
+      await renderHeader("admin");
+      const session = await getSession();
+      const admin = session ? await checkAdmin() : false;
+      if (!admin) {
+        $("#guard").innerHTML = `
+          <div class="notice notice-bad" style="margin-top:24px;">
+            관리자 권한이 없습니다. 관리자 이메일로 <a href="login.html">로그인</a>해주세요.
+          </div>`;
+        return;
+      }
+      $("#panel").hidden = false;
+
+      const sel = $("#week-select");
+      sel.innerHTML = HW_WEEKS.map((w) => `<option value="${w}">${w}주차 — ${esc(weekInfo(w).title)}</option>`).join("");
+
+      await loadRoster();
+      renderWeek(Number(sel.value));
+      renderStudents();
+      await renderDeadlines();
+
+      sel.onchange = () => renderWeek(Number(sel.value));
+      $("#btn-zip").onclick = () => downloadZip(Number(sel.value));
+    }
+    main();
+  </script>
+</body>
+</html>

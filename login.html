@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>로그인 — 미래교육2</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header id="site-header"></header>
+
+  <main class="container container-narrow">
+    <div class="card" style="max-width:460px;margin:24px auto;">
+      <div class="tabs">
+        <button id="tab-login" class="active">로그인</button>
+        <button id="tab-signup">회원가입</button>
+      </div>
+
+      <!-- 로그인 -->
+      <form id="form-login">
+        <label class="field">학교 이메일
+          <input type="email" id="login-email" placeholder="아이디@khu.ac.kr" required autocomplete="email">
+        </label>
+        <label class="field">비밀번호
+          <input type="password" id="login-pw" required autocomplete="current-password">
+        </label>
+        <button class="btn btn-primary btn-block" type="submit">로그인</button>
+        <p style="text-align:center;margin:14px 0 0;font-size:13px;">
+          <a href="#" id="link-reset">비밀번호를 잊으셨나요?</a>
+        </p>
+      </form>
+
+      <!-- 회원가입 -->
+      <form id="form-signup" hidden>
+        <label class="field">학교 이메일
+          <input type="email" id="su-email" placeholder="아이디@khu.ac.kr" required autocomplete="email">
+        </label>
+        <p class="form-hint">반드시 @khu.ac.kr 이메일로 가입해야 합니다.</p>
+        <label class="field">비밀번호 (6자 이상)
+          <input type="password" id="su-pw" minlength="6" required autocomplete="new-password">
+        </label>
+        <label class="field">학번
+          <input type="text" id="su-sid" placeholder="예: 2026123456" required>
+        </label>
+        <label class="field">이름
+          <input type="text" id="su-name" placeholder="홍길동" required>
+        </label>
+        <button class="btn btn-primary btn-block" type="submit">가입하기</button>
+      </form>
+
+      <!-- 비밀번호 재설정 (재설정 메일 링크로 돌아왔을 때) -->
+      <form id="form-newpw" hidden>
+        <p class="notice notice-info">새 비밀번호를 설정해주세요.</p>
+        <label class="field">새 비밀번호 (6자 이상)
+          <input type="password" id="np-pw" minlength="6" required autocomplete="new-password">
+        </label>
+        <button class="btn btn-primary btn-block" type="submit">비밀번호 변경</button>
+      </form>
+
+      <div id="msg"></div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    const forms = { login: $("#form-login"), signup: $("#form-signup"), newpw: $("#form-newpw") };
+    function show(name) {
+      Object.entries(forms).forEach(([k, f]) => { f.hidden = k !== name; });
+      $("#tab-login").classList.toggle("active", name === "login");
+      $("#tab-signup").classList.toggle("active", name === "signup");
+      $("#msg").innerHTML = "";
+    }
+    $("#tab-login").onclick = () => show("login");
+    $("#tab-signup").onclick = () => show("signup");
+
+    function msg(html, kind = "info") {
+      $("#msg").innerHTML = `<div class="notice notice-${kind}">${html}</div>`;
+    }
+    function checkDomain(email) {
+      return email.trim().toLowerCase().endsWith("@" + CONFIG.EMAIL_DOMAIN);
+    }
+
+    // 비밀번호 재설정 메일로 돌아온 경우 감지
+    // (해시는 supabase-js가 처리 후 지우므로 페이지 로드 시점에 미리 기록)
+    let recoveryMode = location.hash.includes("type=recovery");
+    sb.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") { recoveryMode = true; show("newpw"); }
+    });
+
+    $("#form-login").onsubmit = async (e) => {
+      e.preventDefault();
+      const email = $("#login-email").value.trim();
+      const { error } = await sb.auth.signInWithPassword({ email, password: $("#login-pw").value });
+      if (error) {
+        const t = /confirm/i.test(error.message)
+          ? "이메일 인증이 완료되지 않았습니다. 받은편지함의 인증 메일을 확인해주세요."
+          : "로그인에 실패했습니다. 이메일/비밀번호를 확인해주세요.";
+        msg(t, "bad");
+        return;
+      }
+      location.href = "index.html";
+    };
+
+    $("#form-signup").onsubmit = async (e) => {
+      e.preventDefault();
+      const email = $("#su-email").value.trim();
+      if (!checkDomain(email)) {
+        msg(`@${CONFIG.EMAIL_DOMAIN} 이메일만 가입할 수 있습니다.`, "bad");
+        return;
+      }
+      const { data, error } = await sb.auth.signUp({
+        email,
+        password: $("#su-pw").value,
+        options: {
+          data: { student_id: $("#su-sid").value.trim(), name: $("#su-name").value.trim() },
+          emailRedirectTo: siteBase() + "login.html",
+        },
+      });
+      if (error) {
+        const t = /already/i.test(error.message)
+          ? "이미 가입된 이메일입니다. 로그인 탭을 이용해주세요."
+          : "가입에 실패했습니다: " + esc(error.message);
+        msg(t, "bad");
+        return;
+      }
+      if (data.session) {
+        // 이메일 확인이 꺼져 있는 경우 즉시 로그인됨
+        location.href = "index.html";
+      } else {
+        msg(`<strong>${esc(email)}</strong>로 인증 메일을 보냈습니다.<br>
+             메일의 링크를 눌러 인증을 완료한 뒤 로그인해주세요.`, "ok");
+        show("login");
+        $("#msg").innerHTML = `<div class="notice notice-ok"><strong>${esc(email)}</strong>로 인증 메일을 보냈습니다.<br>메일의 링크를 눌러 인증을 완료한 뒤 로그인해주세요.</div>`;
+      }
+    };
+
+    $("#link-reset").onclick = async (e) => {
+      e.preventDefault();
+      const email = $("#login-email").value.trim();
+      if (!email) { msg("위의 이메일 칸에 가입한 이메일을 먼저 입력해주세요.", "warn"); return; }
+      const { error } = await sb.auth.resetPasswordForEmail(email, {
+        redirectTo: siteBase() + "login.html",
+      });
+      if (error) msg("재설정 메일 발송에 실패했습니다: " + esc(error.message), "bad");
+      else msg("비밀번호 재설정 메일을 보냈습니다. 받은편지함을 확인해주세요.", "ok");
+    };
+
+    $("#form-newpw").onsubmit = async (e) => {
+      e.preventDefault();
+      const { error } = await sb.auth.updateUser({ password: $("#np-pw").value });
+      if (error) msg("변경에 실패했습니다: " + esc(error.message), "bad");
+      else { msg("비밀번호가 변경되었습니다. 잠시 후 홈으로 이동합니다.", "ok"); setTimeout(() => location.href = "index.html", 1200); }
+    };
+
+    async function main() {
+      await renderHeader("");
+      // 이미 로그인 상태면 홈으로 (재설정 링크로 온 경우는 제외)
+      const session = await getSession();
+      if (session && !recoveryMode) location.href = "index.html";
+    }
+    main();
+  </script>
+</body>
+</html>

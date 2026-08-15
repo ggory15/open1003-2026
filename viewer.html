@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>노트북 미리보기 — 미래교육2</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/github.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header id="site-header"></header>
+
+  <main class="container">
+    <div id="meta" style="margin:8px 0 16px;"></div>
+    <div class="nb-wrap">
+      <div id="nb"><p class="muted">불러오는 중…</p></div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/nbrender.js"></script>
+  <script>
+    // 사용법:
+    //   viewer.html?src=materials/week2/02_Variables.ipynb  → 자료실 파일 미리보기 (로그인 불필요)
+    //   viewer.html?week=2                                  → 내 제출본 미리보기
+    //   viewer.html?week=2&uid=<user_id>                    → (관리자) 특정 학생 제출본 미리보기
+    const params = new URLSearchParams(location.search);
+    const src = params.get("src");
+    const week = params.get("week");
+    const uid = params.get("uid");
+
+    async function main() {
+      await renderHeader("");
+      const nbEl = $("#nb"), metaEl = $("#meta");
+
+      try {
+        let nb, title;
+        if (src) {
+          // 자료실 정적 파일 (경로 이탈 방지: materials/ 아래만 허용)
+          if (!/^materials\/[\w\-./]+\.ipynb$/.test(src) || src.includes("..")) {
+            throw new Error("잘못된 파일 경로입니다.");
+          }
+          const res = await fetch(src);
+          if (!res.ok) throw new Error("파일을 찾을 수 없습니다.");
+          nb = await res.json();
+          title = src.split("/").pop();
+          metaEl.innerHTML = `<a href="index.html">← 목록으로</a> · <strong>${esc(title)}</strong>
+            · <a href="${esc(src)}" download>다운로드</a>`;
+        } else if (week) {
+          const session = await getSession();
+          if (!session) { location.href = "login.html"; return; }
+          const targetUid = uid || session.user.id;
+          const path = `${targetUid}/week${week}.ipynb`;
+
+          const { data: blob, error } = await sb.storage.from("submissions").download(path);
+          if (error) throw new Error("제출 파일을 불러올 수 없습니다. (권한 또는 파일 없음)");
+          nb = JSON.parse(await blob.text());
+
+          let who = "내 제출본";
+          if (uid) {
+            const { data: p } = await sb.from("profiles").select("name, student_id").eq("id", uid).maybeSingle();
+            if (p) who = `${p.name} (${p.student_id})`;
+          }
+          metaEl.innerHTML = `<a href="${uid ? "admin.html" : "index.html"}">← 돌아가기</a>
+            · <strong>${week}주차 제출</strong> · ${esc(who)}`;
+        } else {
+          throw new Error("표시할 파일이 지정되지 않았습니다.");
+        }
+        renderNotebook(nb, nbEl);
+      } catch (err) {
+        nbEl.innerHTML = `<p class="notice notice-bad">${esc(err.message)}</p>`;
+      }
+    }
+    main();
+  </script>
+</body>
+</html>

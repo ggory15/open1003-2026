@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>미래교육2 — 강의자료 · 과제 제출</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header id="site-header"></header>
+
+  <main class="container">
+    <div class="hero">
+      <h1>미래교육2 <span style="font-weight:400;font-size:.6em;opacity:.85">OPEN 1003-00</span></h1>
+      <p>주차별 강의자료를 내려받고, 완성한 Jupyter 노트북(.ipynb)을 제출하세요. 과제는 2주차부터 12주차까지 있습니다.</p>
+    </div>
+
+    <div id="login-callout"></div>
+
+    <h2 class="section">주차별 자료 및 과제</h2>
+    <div class="week-grid" id="week-grid"></div>
+  </main>
+
+  <footer class="site-footer">미래교육2 (OPEN 1003-00) · 경희대학교</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    async function main() {
+      await renderHeader("home");
+      const session = await getSession();
+
+      // 로그인 안내
+      if (!session) {
+        $("#login-callout").innerHTML = `
+          <div class="notice notice-info">
+            과제를 제출하려면 <a href="login.html"><strong>학교 이메일(@${esc(CONFIG.EMAIL_DOMAIN)})로 로그인</strong></a>이 필요합니다.
+            자료 다운로드는 로그인 없이 가능합니다.
+          </div>`;
+      }
+
+      // 마감일 + 내 제출 현황 로드
+      let deadlines = {};
+      let mySubs = {};
+      try {
+        const { data: dls } = await sb.from("deadlines").select("*");
+        (dls || []).forEach((d) => { deadlines[d.week] = d.due_at; });
+      } catch (e) { /* 설정 전이면 무시 */ }
+      if (session) {
+        const { data: subs } = await sb.from("submissions")
+          .select("week, submitted_at, is_late").eq("user_id", session.user.id);
+        (subs || []).forEach((s) => { mySubs[s.week] = s; });
+      }
+
+      const grid = $("#week-grid");
+      grid.innerHTML = CONFIG.WEEKS.map((w) => {
+        const mats = w.materials.map((m) => {
+          const preview = m.file.endsWith(".ipynb")
+            ? ` <a href="viewer.html?src=${encodeURIComponent(m.file)}" title="브라우저에서 미리보기">👁</a>` : "";
+          return `<a href="${m.file}" download>${esc(m.label)}</a>${preview}`;
+        }).join("");
+
+        let foot = "";
+        if (w.homework) {
+          const due = deadlines[w.week];
+          const passed = due && new Date(due) < new Date();
+          const dueHtml = due
+            ? `<span class="deadline ${passed ? "passed" : ""}">마감 ${fmtDate(due)}</span>`
+            : `<span class="deadline">마감일 미정</span>`;
+
+          const sub = mySubs[w.week];
+          let chip;
+          if (sub) {
+            chip = sub.is_late
+              ? `<span class="chip chip-warn">지각 제출</span>`
+              : `<span class="chip chip-ok">제출 완료</span>`;
+          } else if (session) {
+            chip = passed
+              ? `<span class="chip chip-bad">미제출 (마감 지남)</span>`
+              : `<span class="chip chip-none">미제출</span>`;
+          } else {
+            chip = "";
+          }
+          foot = `
+            <div class="week-foot">
+              <div>${dueHtml} ${chip}</div>
+              <a class="btn btn-sm ${sub ? "btn-outline" : "btn-primary"}" href="submit.html?week=${w.week}">
+                ${sub ? "다시 제출" : "제출하기"}</a>
+            </div>`;
+        } else {
+          foot = `<div class="week-foot"><span class="muted">제출 과제 없음</span></div>`;
+        }
+
+        return `
+          <div class="week-card">
+            <div class="week-head">
+              <span class="week-num">${w.week}주차</span>
+              <span class="week-title">${esc(w.title)}</span>
+            </div>
+            <div class="mat-links">${mats}</div>
+            ${foot}
+          </div>`;
+      }).join("");
+    }
+    main();
+  </script>
+</body>
+</html>
