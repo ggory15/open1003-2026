@@ -79,6 +79,7 @@
   <script src="js/app.js"></script>
   <script>
     let students = [];      // 관리자 제외 profiles
+    let allProfiles = [];   // 관리자 포함 전체 profiles (ZIP 파일명 등에 사용)
     let summary = [];       // hw_summary 전체 (user_id, week, passed_count, any_late, last_activity)
     let counts = {};        // week -> 문제 수
     let problemsCache = {}; // week -> problems json
@@ -110,6 +111,7 @@
         fetch("problems/index.json").then((r) => r.json()),
       ]);
       const adminEmails = new Set(admins.map((a) => a.email.toLowerCase()));
+      allProfiles = profiles;
       students = profiles.filter((p) => !adminEmails.has((p.email || "").toLowerCase()));
       summary = sums;
       counts = cnt;
@@ -207,7 +209,7 @@
       const pnum = new Map();
       let n = 0;
       probs.items.forEach((it) => { if (it.kind === "problem") pnum.set(it.id, ++n); });
-      const byId = new Map(students.map((p) => [p.id, p]));
+      const byId = new Map(allProfiles.map((p) => [p.id, p]));
       const byUser = new Map();
       rows.forEach((r) => {
         if (!byUser.has(r.user_id)) byUser.set(r.user_id, []);
@@ -217,7 +219,7 @@
       const zip = new JSZip();
       for (const [uid, list] of byUser) {
         const p = byId.get(uid);
-        const label = p ? `${p.student_id}_${p.name}` : uid.slice(0, 8);
+        const label = p ? `${p.name}_${p.student_id}` : uid.slice(0, 8);
         list.sort((a, b) => (pnum.get(a.problem_id) || 99) - (pnum.get(b.problem_id) || 99));
         const body = list.map((r) =>
           `# ===== 문제 ${pnum.get(r.problem_id) || "?"} — ${r.passed ? "통과" : "미통과"}${r.is_late ? " (지각)" : ""} =====\n${r.code || ""}\n`
