@@ -84,12 +84,33 @@
       return email.trim().toLowerCase().endsWith("@" + CONFIG.EMAIL_DOMAIN);
     }
 
-    // 비밀번호 재설정 메일로 돌아온 경우 감지
-    // (해시는 supabase-js가 처리 후 지우므로 페이지 로드 시점에 미리 기록)
-    let recoveryMode = location.hash.includes("type=recovery");
+    // 메일 링크(재설정/가입 인증)로 돌아온 경우: URL 해시·쿼리의 결과를 미리 읽어둔다.
+    // (성공 시 해시는 supabase-js가 처리 후 지우므로 페이지 로드 시점에 기록해야 함)
+    // 실패 시 Supabase는 #error=access_denied&error_code=otp_expired&error_description=... 형태로 돌려보낸다.
+    const urlParams = new URLSearchParams(
+      location.hash.replace(/^#/, "") + "&" + location.search.replace(/^\?/, "")
+    );
+    const authErrorCode = urlParams.get("error_code") || urlParams.get("error");
+    const authError = authErrorCode
+      ? { code: authErrorCode, desc: urlParams.get("error_description") || "" }
+      : null;
+    let recoveryMode = urlParams.get("type") === "recovery";
     sb.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY") { recoveryMode = true; show("newpw"); }
     });
+
+    function showAuthError(err) {
+      if (err.code === "otp_expired") {
+        msg(`메일 링크가 <strong>만료되었거나 이미 사용되었습니다.</strong><br>
+             링크는 1회용이며 1시간 동안만 유효합니다. 메일 앱이 링크를 미리 열어 보았거나,
+             여러 번 요청한 뒤 <em>이전</em> 메일의 링크를 누른 경우에도 이렇게 됩니다.<br><br>
+             <strong>비밀번호 재설정</strong>이라면: 위 이메일 칸에 주소를 입력하고
+             "비밀번호를 잊으셨나요?"를 다시 눌러 <em>가장 최근</em> 메일의 링크를 사용해주세요.<br>
+             <strong>회원가입 인증</strong>이라면: 인증은 이미 완료된 것이니 바로 로그인하시면 됩니다.`, "bad");
+      } else {
+        msg("인증 링크 처리에 실패했습니다: " + esc(err.desc || err.code), "bad");
+      }
+    }
 
     $("#form-login").onsubmit = async (e) => {
       e.preventDefault();
@@ -158,9 +179,21 @@
 
     async function main() {
       await renderHeader("");
-      // 이미 로그인 상태면 홈으로 (재설정 링크로 온 경우는 제외)
+      if (authError) {
+        history.replaceState(null, "", location.pathname);  // 새로고침 시 에러가 반복되지 않도록
+        showAuthError(authError);
+        return;
+      }
       const session = await getSession();
-      if (session && !recoveryMode) location.href = "index.html";
+      if (recoveryMode) {
+        // PASSWORD_RECOVERY 이벤트를 놓쳤더라도 세션이 있으면 새 비밀번호 폼을 띄운다
+        if (session) show("newpw");
+        else msg(`재설정 링크로 로그인하지 못했습니다. 위 이메일 칸에 주소를 입력하고
+                  "비밀번호를 잊으셨나요?"를 다시 눌러주세요.`, "bad");
+        return;
+      }
+      // 이미 로그인 상태면 홈으로
+      if (session) location.href = "index.html";
     }
     main();
   </script>
