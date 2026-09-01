@@ -41,9 +41,20 @@ create table if not exists public.admins (
 insert into public.admins (email) values ('kim87@khu.ac.kr')
   on conflict (email) do nothing;
 
--- 과제 주차(2~12) 마감일 행 미리 생성 (마감일은 관리자 페이지에서 설정)
+-- 2026년 2학기 과제 마감일 (매주 금요일 23:59, 한국 시간)
 insert into public.deadlines (week, due_at)
-  select w, null from generate_series(2, 12) as w
+  values
+    (2,  timestamptz '2026-09-18 23:59:00+09'),
+    (3,  timestamptz '2026-09-25 23:59:00+09'),
+    (4,  timestamptz '2026-10-02 23:59:00+09'),
+    (5,  timestamptz '2026-10-09 23:59:00+09'),
+    (6,  timestamptz '2026-10-16 23:59:00+09'),
+    (7,  timestamptz '2026-10-23 23:59:00+09'),
+    (8,  timestamptz '2026-10-30 23:59:00+09'),
+    (9,  timestamptz '2026-11-06 23:59:00+09'),
+    (10, timestamptz '2026-11-13 23:59:00+09'),
+    (11, timestamptz '2026-11-20 23:59:00+09'),
+    (12, timestamptz '2026-11-27 23:59:00+09')
   on conflict (week) do nothing;
 
 -- ── 2. 함수 ─────────────────────────────────────────────────
