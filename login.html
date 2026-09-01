@@ -47,7 +47,7 @@
         <label class="field">이름
           <input type="text" id="su-name" placeholder="홍길동" required>
         </label>
-        <button class="btn btn-primary btn-block" type="submit">가입하기</button>
+        <button id="btn-signup" class="btn btn-primary btn-block" type="submit">가입하기</button>
       </form>
 
       <!-- 비밀번호 재설정 (재설정 메일 링크로 돌아왔을 때) -->
@@ -133,18 +133,34 @@
         msg(`@${CONFIG.EMAIL_DOMAIN} 이메일만 가입할 수 있습니다.`, "bad");
         return;
       }
-      const { data, error } = await sb.auth.signUp({
-        email,
-        password: $("#su-pw").value,
-        options: {
-          data: { student_id: $("#su-sid").value.trim(), name: $("#su-name").value.trim() },
-          emailRedirectTo: siteBase() + "login.html",
-        },
-      });
+      const button = $("#btn-signup");
+      button.disabled = true;
+      button.textContent = "가입 처리 중…";
+
+      let data, error;
+      try {
+        ({ data, error } = await sb.auth.signUp({
+          email,
+          password: $("#su-pw").value,
+          options: {
+            data: { student_id: $("#su-sid").value.trim(), name: $("#su-name").value.trim() },
+            emailRedirectTo: siteBase() + "login.html",
+          },
+        }));
+      } finally {
+        button.disabled = false;
+        button.textContent = "가입하기";
+      }
       if (error) {
-        const t = /already/i.test(error.message)
-          ? "이미 가입된 이메일입니다. 로그인 탭을 이용해주세요."
-          : "가입에 실패했습니다: " + esc(error.message);
+        const code = error.code || "";
+        let t;
+        if (/rate.*limit/i.test(code + " " + error.message)) {
+          t = "현재 인증 메일 발송 한도를 초과했습니다. 가입 버튼을 반복해서 누르지 말고 잠시 후 다시 시도해주세요. 계속 실패하면 담당자에게 문의해주세요.";
+        } else if (/already/i.test(error.message)) {
+          t = "이미 가입된 이메일입니다. 로그인 탭을 이용해주세요.";
+        } else {
+          t = "가입에 실패했습니다: " + esc(error.message);
+        }
         msg(t, "bad");
         return;
       }
