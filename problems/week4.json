@@ -366,16 +366,14 @@
    "kind": "problem",
    "prompt": "## 문자열 포매팅\n다음과 같은 문자열 포매팅을 통해 문자열 안에 변수나 값을 삽입할 수 있습니다.\n```python\nname = 'Bob'\nage = 30\nf'My name is {name} and I am {age} years old.'\n```\n위의 포매팅 방법을 활용해 변수 `name`과 `age`의 값을 바꿔 문자열을 출력해보세요.",
    "code": "",
-   "check": "exact",
+   "check": "regex",
    "codePattern": null,
    "tests": [
     {
-     "stdin": "",
-     "expected": [
-      "My name is Alice and I am 20 years old.\n"
-     ]
+     "stdin": ""
     }
-   ]
+   ],
+   "pattern": "^(['\"]?)My name is [^\\r\\n]+ and I am [0-9]+(?:\\.[0-9]+)? years old\\.\\1$"
   }
  ],
  "problemCount": 23

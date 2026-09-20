@@ -7,16 +7,14 @@
    "kind": "problem",
    "prompt": "# Chapter 11: 과제\n\n## 클래스와 객체 생성\n`class`를 통해 새로운 자료형(객체)을 정의할 수 있습니다.<br>\n객체는 속성과 동작(메서드)을 가질 수 있습니다.<br>\n\n`Introduce` 클래스를 정의하고, 본인의 이름(name)과 나이(age)를 클래스의 변수로 저장해보세요.<br>\n그리고 정의한 클래스를 호출해 변수가 잘 저장되었는지 확인해보세요.\n```python\n# 클래스 구현\n\na = Introduce()\nprint(a.name, a.age)\n```",
    "code": "",
-   "check": "exact",
+   "check": "regex",
    "codePattern": null,
    "tests": [
     {
-     "stdin": "",
-     "expected": [
-      "Alice 21\n"
-     ]
+     "stdin": ""
     }
-   ]
+   ],
+   "pattern": "^(['\"]?)[^\\r\\n]+ [0-9]+(?:\\.[0-9]+)?\\1$"
   },
   {
    "id": "4a012ecb",
