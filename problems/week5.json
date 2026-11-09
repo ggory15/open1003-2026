@@ -183,16 +183,14 @@
    "kind": "problem",
    "prompt": "`pop()`을 활용해 리스트 `[1, 2, 3]`의 마지막 요소를 제거하고 반환해보세요.",
    "code": "",
-   "check": "exact",
-   "codePattern": null,
+   "check": "regex",
+   "codePattern": "pop",
    "tests": [
     {
-     "stdin": "",
-     "expected": [
-      "[1, 2]\n"
-     ]
+     "stdin": ""
     }
-   ]
+   ],
+   "pattern": "^(?![\\s\\S]*(?:^|\\n)\\w+(?:Error|Exception)\\b)[\\s\\S]*(?:\\[1, 2\\]|(?:^|\\n)(?:[^\\n]*[^0-9\\n.\\-\\[,])?[ \\t]*3(?:\\n|$))"
   },
   {
    "id": "5b19813f",
@@ -295,16 +293,14 @@
    "kind": "problem",
    "prompt": "튜플 `t = (1, 2, 3, 4)`에서 슬라이싱을 활용해 일부 요소를 확인해보세요.",
    "code": "",
-   "check": "exact",
-   "codePattern": null,
+   "check": "regex",
+   "codePattern": "\\[[^\\]]*:[^\\]]*\\]",
    "tests": [
     {
-     "stdin": "",
-     "expected": [
-      "(2, 3)\n"
-     ]
+     "stdin": ""
     }
-   ]
+   ],
+   "pattern": "^\\([1-4](?:, [1-4])*,?\\)$"
   },
   {
    "id": "23e3b8dc",

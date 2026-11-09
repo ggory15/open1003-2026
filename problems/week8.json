@@ -23,16 +23,14 @@
    "kind": "problem",
    "prompt": "`while`문을 활용해 사용자로부터 'exit'을 입력받을 때까지 계속 입력을 받는 코드를 작성해보세요.\n```python\nuser = input()\nwhile 조건문:\n    user = input()\n```",
    "code": "",
-   "check": "exact",
+   "check": "regex",
    "codePattern": "while",
    "tests": [
     {
-     "stdin": "hello\npython\nexit\n",
-     "expected": [
-      ""
-     ]
+     "stdin": "hello\npython\nexit\n"
     }
-   ]
+   ],
+   "pattern": "^(?![\\s\\S]*(?:^|\\n)\\w+(?:Error|Exception)\\b)"
   },
   {
    "id": "9a3387c3",
@@ -55,16 +53,14 @@
    "kind": "problem",
    "prompt": "`while`문으로 2의 거듭제곱을 100 이상이 될 때까지 출력해보세요.",
    "code": "",
-   "check": "exact",
-   "codePattern": null,
+   "check": "regex",
+   "codePattern": "while",
    "tests": [
     {
-     "stdin": "",
-     "expected": [
-      "128\n"
-     ]
+     "stdin": ""
     }
-   ]
+   ],
+   "pattern": "^(?:128|(?:1(?:[ \\t]*[,\\n][ \\t]*|[ \\t]+))?2(?:[ \\t]*[,\\n][ \\t]*|[ \\t]+)4(?:[ \\t]*[,\\n][ \\t]*|[ \\t]+)8(?:[ \\t]*[,\\n][ \\t]*|[ \\t]+)16(?:[ \\t]*[,\\n][ \\t]*|[ \\t]+)32(?:[ \\t]*[,\\n][ \\t]*|[ \\t]+)64(?:(?:[ \\t]*[,\\n][ \\t]*|[ \\t]+)128)?)$"
   },
   {
    "id": "036447a3",
@@ -87,16 +83,14 @@
    "kind": "problem",
    "prompt": "## 반복문 내 제어\n`break`, `continue`, `pass`는 반복문 내부 동작을 제어할 수 있게 도와줍니다.<br>\n\n`break`를 활용해 숫자를 입력받다가 0이면 종료하는 반복문을 작성해보세요.(`while True:` 사용)",
    "code": "",
-   "check": "exact",
+   "check": "regex",
    "codePattern": "break",
    "tests": [
     {
-     "stdin": "1\n2\n3\n0\n",
-     "expected": [
-      ""
-     ]
+     "stdin": "1\n2\n3\n0\n"
     }
-   ]
+   ],
+   "pattern": "^(?![\\s\\S]*(?:^|\\n)\\w+(?:Error|Exception)\\b)"
   },
   {
    "id": "1195397b",

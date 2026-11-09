@@ -40,12 +40,13 @@
    "prompt": "### 비교 연산자\n비교 연산자는 두 값 사이의 관계를 판단하여 True 또는 False를 반환합니다.<br>\n대표적으로 ==, !=, >, <, >=, <= 등이 있으며, <br>\n숫자뿐 아니라 문자열 등 다양한 자료형에 사용됩니다.<br>\n\n정수 `3`과 `2`의 대소 관계를 비교 연산자를 통해 `bool` 자료형으로 출력해보세요.",
    "code": "",
    "check": "exact",
-   "codePattern": null,
+   "codePattern": "^(?=[\\s\\S]*3)(?=[\\s\\S]*2)(?=[\\s\\S]*(?:[<>]|==|!=))",
    "tests": [
     {
      "stdin": "",
      "expected": [
-      "True\n"
+      "True\n",
+      "False\n"
      ]
     }
    ]
@@ -56,12 +57,13 @@
    "prompt": "정수 `5`과 `5`의 대소 관계를 비교 연산자를 통해 `bool` 자료형으로 출력해보세요.",
    "code": "",
    "check": "exact",
-   "codePattern": null,
+   "codePattern": "^(?=[\\s\\S]*5[\\s\\S]*5)(?=[\\s\\S]*(?:[<>]|==|!=))",
    "tests": [
     {
      "stdin": "",
      "expected": [
-      "True\n"
+      "True\n",
+      "False\n"
      ]
     }
    ]
@@ -72,11 +74,12 @@
    "prompt": "문자열 `'apple'`과 `'banana'`의 대소 관계를 비교 연산자를 통해 `bool` 자료형으로 출력해보세요.",
    "code": "",
    "check": "exact",
-   "codePattern": null,
+   "codePattern": "^(?=[\\s\\S]*apple)(?=[\\s\\S]*banana)(?=[\\s\\S]*(?:[<>]|==|!=))",
    "tests": [
     {
      "stdin": "",
      "expected": [
+      "True\n",
       "False\n"
      ]
     }
@@ -88,12 +91,13 @@
    "prompt": "### 문자열 비교\n문자열도 사전순(Unicode 기준)으로 비교할 수 있습니다. <br>\n예를 들어 'apple' < 'banana'는 True입니다. <br>\n\n두 문자열 `'cat'`과 `'apple'`의 대소 관계를 비교 연산자를 이용해 확인해보세요.",
    "code": "",
    "check": "exact",
-   "codePattern": null,
+   "codePattern": "^(?=[\\s\\S]*cat)(?=[\\s\\S]*apple)(?=[\\s\\S]*(?:[<>]|==|!=))",
    "tests": [
     {
      "stdin": "",
      "expected": [
-      "True\n"
+      "True\n",
+      "False\n"
      ]
     }
    ]
@@ -104,11 +108,12 @@
    "prompt": "두 문자열 `'a'`과 `'A'`의 대소 관계를 비교 연산자를 이용해 확인해보세요.",
    "code": "",
    "check": "exact",
-   "codePattern": null,
+   "codePattern": "^(?=[\\s\\S]*['\"]a['\"])(?=[\\s\\S]*['\"]A['\"])(?=[\\s\\S]*(?:[<>]|==|!=))",
    "tests": [
     {
      "stdin": "",
      "expected": [
+      "True\n",
       "False\n"
      ]
     }

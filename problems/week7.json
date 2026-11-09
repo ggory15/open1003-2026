@@ -165,7 +165,7 @@
   {
    "id": "63838e16-6200-4d2a-9021-55d7ed9c1a49",
    "kind": "problem",
-   "prompt": "",
+   "prompt": "위 두 가지 방법 중 하나로 두 수를 입력받아, 두 수가 모두 짝수이면 `'모두 짝수'`를 출력해보세요.",
    "code": "",
    "check": "includes",
    "codePattern": "input",
