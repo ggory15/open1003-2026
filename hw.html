@@ -225,7 +225,8 @@
       // 문제 데이터 + 마감일 + 기존 기록 로드
       let res;
       try {
-        res = await fetch(`problems/week${week}.json`);
+        // 채점 기준이 바뀌면 바로 반영되도록 매번 서버에 최신 여부 확인 (안 바뀌었으면 304로 가볍게 끝남)
+        res = await fetch(`problems/week${week}.json`, { cache: "no-cache" });
         if (!res.ok) throw new Error();
         data = await res.json();
       } catch {
