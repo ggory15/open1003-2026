@@ -7,32 +7,28 @@
    "kind": "problem",
    "prompt": "## 함수 정의와 호출\n함수는 코드 블록을 정의하여 재사용할 수 있도록 도와줍니다. <br>\n`def`를 이용해 함수를 정의하고, 이름으로 호출합니다.<br>\n\n`def`를 이용해 두 수의 합을 반환하는 함수를 정의하고 사용해보세요.",
    "code": "",
-   "check": "exact",
-   "codePattern": null,
+   "check": "regex",
+   "codePattern": "def\\s+[^\\s(]+\\s*\\([^)]*,[^)]*\\)\\s*:[\\s\\S]*\\breturn\\b",
    "tests": [
     {
-     "stdin": "",
-     "expected": [
-      "7\n"
-     ]
+     "stdin": ""
     }
-   ]
+   ],
+   "pattern": "[0-9]"
   },
   {
    "id": "c3f843fd",
    "kind": "problem",
    "prompt": "`return` 없이 함수의 인자로 입력한 문자열을 출력하는 함수 `printer(string)`를 정의하고 사용해보세요.",
    "code": "",
-   "check": "exact",
-   "codePattern": null,
+   "check": "regex",
+   "codePattern": "^(?![\\s\\S]*\\n[ \\t]+return\\b)[\\s\\S]*def\\s+printer\\s*\\([^)]*\\)\\s*:[\\s\\S]*\\bprint\\s*\\([\\s\\S]*\\bprinter\\s*\\(",
    "tests": [
     {
-     "stdin": "",
-     "expected": [
-      "Hello World\n"
-     ]
+     "stdin": ""
     }
-   ]
+   ],
+   "pattern": "\\S"
   },
   {
    "id": "283b4938-7f4c-4d34-9997-b76b2d3a3d5c",
@@ -77,7 +73,8 @@
     {
      "stdin": "",
      "expected": [
-      "5.0\n"
+      "5.0\n",
+      "5\n"
      ]
     }
    ]
