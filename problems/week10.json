@@ -14,7 +14,7 @@
      "stdin": ""
     }
    ],
-   "pattern": "[0-9]"
+   "pattern": "^(?![\\s\\S]*(?:^|\\n)\\w+(?:Error|Exception)\\b)[\\s\\S]*[0-9]"
   },
   {
    "id": "c3f843fd",
@@ -28,7 +28,7 @@
      "stdin": ""
     }
    ],
-   "pattern": "\\S"
+   "pattern": "^(?![\\s\\S]*(?:^|\\n)\\w+(?:Error|Exception)\\b)[\\s\\S]*\\S"
   },
   {
    "id": "283b4938-7f4c-4d34-9997-b76b2d3a3d5c",
